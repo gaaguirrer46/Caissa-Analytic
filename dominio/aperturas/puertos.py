@@ -58,6 +58,12 @@ class RepositorioAperturas(ABC):
     ) -> Optional[EstadisticaApertura]:
         """Devuelve las estadísticas generales de una apertura."""
 
+    @abstractmethod
+    def listar_estadisticas_por_apertura(
+        self, id_apertura: str
+    ) -> List[EstadisticaAperturaPorTorneo]:
+        """Devuelve las estadísticas por torneo de una apertura."""
+
 
 class ProveedorEvaluacionMotor(ABC):
     """Interfaz para obtener evaluación numérica de posiciones (ej: Stockfish)."""

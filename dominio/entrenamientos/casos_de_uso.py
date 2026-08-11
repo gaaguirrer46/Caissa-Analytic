@@ -9,6 +9,7 @@ from ..comun.errores import (
     EntidadNoEncontrada,
     ErrorValidacion,
 )
+from ..comun.ids import nuevo_id
 from ..usuarios.entidades import Rol
 from .entidades import (
     Asistencia,
@@ -16,6 +17,7 @@ from .entidades import (
     EstadoAsistencia,
     EstadoSesion,
     PlanEntrenamientoSemanal,
+    ResumenCumplimientoSemanal,
     SesionEntrenamiento,
 )
 from .puertos import RepositorioAsistencia, RepositorioEntrenamientos
@@ -38,10 +40,20 @@ class PlanificarEntrenamientoSemanal:
             raise ErrorValidacion(
                 "El plan semanal debe contener al menos una sesión."
             )
+        # RF-04.2: la planificación se define antes del inicio de la semana;
+        # no se permite duplicar el plan de una misma semana.
+        if self.repositorio.listar_por_semana(id_atleta, semana, anio) is not None:
+            raise ErrorValidacion(
+                "Ya existe un plan de entrenamiento para esa semana."
+            )
         for sesion in sesiones:
             if sesion.horas_planificadas <= 0:
                 raise ErrorValidacion(
                     "Las horas planificadas de cada sesión deben ser mayores a cero."
+                )
+            if not sesion.dia_semana:
+                raise ErrorValidacion(
+                    "El día de la semana de cada sesión es obligatorio."
                 )
         plan = PlanEntrenamientoSemanal(
             id=generar_id_plan(id_atleta, semana, anio),
@@ -55,6 +67,8 @@ class PlanificarEntrenamientoSemanal:
 
 @dataclass
 class ReprogramarSesion:
+    """RF-04.7: cambia el día de una sesión y la marca como REPROGRAMADA."""
+
     repositorio: RepositorioEntrenamientos
 
     def ejecutar(
@@ -67,19 +81,20 @@ class ReprogramarSesion:
             raise ErrorValidacion(
                 "Solo el entrenador puede reprogramar sesiones."
             )
-        sesion = self._buscar_sesion(id_sesion)
+        if not nuevo_dia:
+            raise ErrorValidacion("El nuevo día de la sesión es obligatorio.")
+        sesion = self.repositorio.buscar_sesion(id_sesion)
+        if sesion is None:
+            raise EntidadNoEncontrada("Sesión no encontrada.")
         sesion.dia_semana = nuevo_dia
         sesion.estado = EstadoSesion.REPROGRAMADA
         return self.repositorio.actualizar_sesion(sesion)
 
-    def _buscar_sesion(self, id_sesion: str) -> SesionEntrenamiento:
-        raise NotImplementedError(
-            "Requiere un mecanismo de búsqueda de sesión por id."
-        )
-
 
 @dataclass
 class RegistrarEjecucionEntrenamiento:
+    """RF-04.3: el atleta reporta las horas ejecutadas de una sesión."""
+
     repositorio: RepositorioEntrenamientos
 
     def ejecutar(
@@ -89,24 +104,28 @@ class RegistrarEjecucionEntrenamiento:
         fecha_registro: date,
         rol_usuario: Rol,
     ) -> EjecucionEntrenamiento:
-        if rol_usuario != Rol.ATLETA and rol_usuario != Rol.ENTRENADOR:
+        if rol_usuario != Rol.ATLETA:
             raise ErrorValidacion(
-                "Solo el atleta o el entrenador pueden registrar ejecución."
+                "Solo el atleta puede registrar la ejecución de sus horas."
             )
         if horas_ejecutadas < 0:
             raise ErrorValidacion("Las horas ejecutadas no pueden ser negativas.")
+        if self.repositorio.buscar_sesion(id_sesion) is None:
+            raise EntidadNoEncontrada("La sesión no existe.")
         ejecucion = EjecucionEntrenamiento(
-            id=generar_id_ejecucion(),
+            id=nuevo_id("ejecucion"),
             id_sesion=id_sesion,
             horas_ejecutadas=horas_ejecutadas,
             fecha_registro=fecha_registro,
-            registrado_por_atleta=rol_usuario == Rol.ATLETA,
+            registrado_por_atleta=True,
         )
         return self.repositorio.registrar_ejecucion(ejecucion)
 
 
 @dataclass
 class AprobarHorasEjecutadas:
+    """RF-04.3: el entrenador aprueba las horas reportadas por el atleta."""
+
     repositorio: RepositorioEntrenamientos
 
     def ejecutar(self, id_ejecucion: str, rol_usuario: Rol) -> EjecucionEntrenamiento:
@@ -119,23 +138,29 @@ class AprobarHorasEjecutadas:
 
 @dataclass
 class ConsultarCumplimientoSemanal:
+    """RF-04.4: compara planificado vs ejecutado y devuelve el porcentaje."""
+
     repositorio: RepositorioEntrenamientos
 
     def ejecutar(
         self, id_atleta: str, semana: int, anio: int
-    ) -> dict:
+    ) -> ResumenCumplimientoSemanal:
         plan = self.repositorio.listar_por_semana(id_atleta, semana, anio)
         if plan is None:
             raise EntidadNoEncontrada("No existe plan para esa semana.")
-        return {
-            "planificado": plan.total_horas_planificadas,
-            "ejecutado_aprobado": plan.total_horas_ejecutadas_aprobadas,
-            "porcentaje_cumplimiento": plan.porcentaje_cumplimiento,
-        }
+        return ResumenCumplimientoSemanal(
+            id_atleta=id_atleta,
+            semana=semana,
+            anio=anio,
+            horas_planificadas=plan.total_horas_planificadas,
+            horas_ejecutadas_aprobadas=plan.total_horas_ejecutadas_aprobadas,
+        )
 
 
 @dataclass
 class RegistrarAsistencia:
+    """RF-04.8: asistencia registrada por el entrenador después de la sesión."""
+
     repositorio_asistencia: RepositorioAsistencia
 
     def ejecutar(
@@ -153,7 +178,7 @@ class RegistrarAsistencia:
         if estado not in EstadoAsistencia:
             raise ErrorValidacion("Estado de asistencia inválido.")
         asistencia = Asistencia(
-            id=generar_id_asistencia(),
+            id=nuevo_id("asistencia"),
             id_atleta=id_atleta,
             id_sesion=id_sesion,
             fecha=fecha,
@@ -164,6 +189,8 @@ class RegistrarAsistencia:
 
 @dataclass
 class ConsultarHistorialEntrenamientos:
+    """RF-04.6: historial completo de sesiones conservando todos los estados."""
+
     repositorio: RepositorioEntrenamientos
 
     def ejecutar(self, id_atleta: str) -> List[PlanEntrenamientoSemanal]:
@@ -172,15 +199,3 @@ class ConsultarHistorialEntrenamientos:
 
 def generar_id_plan(id_atleta: str, semana: int, anio: int) -> str:
     return f"plan_{id_atleta}_{anio}_{semana}"
-
-
-def generar_id_ejecucion() -> str:
-    import uuid
-
-    return str(uuid.uuid4())
-
-
-def generar_id_asistencia() -> str:
-    import uuid
-
-    return str(uuid.uuid4())

@@ -17,6 +17,13 @@ class ResultadoPartida(str, Enum):
     TABLAS = "1/2-1/2"
 
 
+class ColorPartida(str, Enum):
+    """Color con el que jugó el atleta registrado en la partida."""
+
+    BLANCAS = "BLANCAS"
+    NEGRAS = "NEGRAS"
+
+
 class FuentePartida(str, Enum):
     PGN = "PGN"
     CHESS_COM = "CHESS_COM"
@@ -46,6 +53,15 @@ class Partida:
     apertura_eco: str
     control_tiempo: Optional[str] = None
     fuente: FuentePartida = FuentePartida.MANUAL
+    color_atleta: Optional[ColorPartida] = None
+
+    def puntos_obtenidos(self) -> float:
+        """Puntos que obtuvo el atleta en esta partida según su color."""
+        if self.resultado == ResultadoPartida.TABLAS:
+            return 0.5
+        if self.color_atleta == ColorPartida.NEGRAS:
+            return 1.0 if self.resultado == ResultadoPartida.VICTORIA_NEGRAS else 0.0
+        return 1.0 if self.resultado == ResultadoPartida.VICTORIA_BLANCAS else 0.0
 
 
 @dataclass

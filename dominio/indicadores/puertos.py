@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import date
-from typing import List
+from typing import List, Optional, Tuple
 
 from .entidades import (
     Alerta,
@@ -11,6 +11,7 @@ from .entidades import (
     DashboardEntrenador,
     IndicadorRendimiento,
     Reporte,
+    TipoIndicador,
 )
 
 
@@ -94,6 +95,12 @@ class ProveedorDatosRendimiento(ABC):
         """Partidas jugadas en el periodo."""
 
     @abstractmethod
+    def torneos_jugados(
+        self, id_atleta: str, desde: date, hasta: date
+    ) -> int:
+        """Torneos disputados en el periodo."""
+
+    @abstractmethod
     def porcentaje_asistencia(
         self, id_atleta: str, desde: date, hasta: date
     ) -> float:
@@ -118,6 +125,20 @@ class ProveedorDatosRendimiento(ABC):
     @abstractmethod
     def atletas_por_entrenador(self, id_entrenador: str) -> list:
         """Lista de atletas asignados al entrenador."""
+
+
+class ProveedorRangosEvaluacion(ABC):
+    """RNF-07.2: configuración de los rangos de evaluación de indicadores.
+
+    Si un adaptador no configura un tipo, el dominio usa los valores
+    por defecto definidos en RANGOS_POR_DEFECTO.
+    """
+
+    @abstractmethod
+    def rangos(
+        self, tipo: TipoIndicador
+    ) -> Optional[Tuple[float, float, float]]:
+        """Devuelve (excelente, bueno, aceptable) para el tipo, o None."""
 
 
 class ServicioGeneracionReportes(ABC):

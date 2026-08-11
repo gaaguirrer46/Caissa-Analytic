@@ -95,3 +95,20 @@ class Asistencia:
     id_sesion: str
     fecha: date
     estado: EstadoAsistencia
+
+
+@dataclass(frozen=True)
+class ResumenCumplimientoSemanal:
+    """Contraste planificado vs ejecutado de una semana (RF-04.4)."""
+
+    id_atleta: str
+    semana: int
+    anio: int
+    horas_planificadas: float
+    horas_ejecutadas_aprobadas: float
+
+    @property
+    def porcentaje_cumplimiento(self) -> float:
+        if self.horas_planificadas <= 0:
+            return 0.0
+        return (self.horas_ejecutadas_aprobadas / self.horas_planificadas) * 100

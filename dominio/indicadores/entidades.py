@@ -5,7 +5,7 @@ Entidades para calcular métricas de rendimiento, vistas consolidadas y reportes
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional
 
@@ -58,6 +58,14 @@ class FormatoReporte(str, Enum):
     EXCEL = "EXCEL"
 
 
+class PeriodoInstitucional(str, Enum):
+    """Periodos de los informes institucionales (RF-11.7)."""
+
+    MENSUAL = "MENSUAL"
+    TRIMESTRAL = "TRIMESTRAL"
+    ANUAL = "ANUAL"
+
+
 @dataclass
 class IndicadorRendimiento:
     id: str
@@ -104,4 +112,27 @@ class Reporte:
     titulo: str
     secciones: List[str] = field(default_factory=list)
     contenido: dict = field(default_factory=dict)
-    generado_en: datetime = field(default_factory=datetime.utcnow)
+    generado_en: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+
+@dataclass(frozen=True)
+class TendenciaComparada:
+    """Comparación de un indicador entre dos periodos (RF-09.6, RF-11.4)."""
+
+    tipo: TipoIndicador
+    valor_anterior: float
+    valor_actual: float
+
+    @property
+    def variacion(self) -> float:
+        """Diferencia absoluta entre el periodo actual y el anterior."""
+        return self.valor_actual - self.valor_anterior
+
+    @property
+    def variacion_porcentual(self) -> Optional[float]:
+        """Variación relativa; None si el periodo anterior era cero."""
+        if self.valor_anterior == 0:
+            return None
+        return (self.variacion / self.valor_anterior) * 100

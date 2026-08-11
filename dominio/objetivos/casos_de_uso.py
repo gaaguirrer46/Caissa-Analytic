@@ -9,6 +9,7 @@ from ..comun.errores import (
     EntidadNoEncontrada,
     ErrorValidacion,
 )
+from ..comun.ids import nuevo_id
 from ..usuarios.entidades import Rol
 from .entidades import (
     EstadoObjetivo,
@@ -48,7 +49,7 @@ class CrearObjetivoSmart:
             raise ErrorValidacion("Solo el entrenador o el atleta pueden proponer.")
 
         objetivo = ObjetivoSmart(
-            id=generar_id_objetivo(),
+            id=nuevo_id("objetivo"),
             id_atleta=id_atleta,
             descripcion=descripcion,
             indicador_meta=indicador_meta,
@@ -195,8 +196,3 @@ class ListarObjetivosPorAtleta:
             objetivos = [o for o in objetivos if o.estado == estado]
         return objetivos
 
-
-def generar_id_objetivo() -> str:
-    import uuid
-
-    return str(uuid.uuid4())

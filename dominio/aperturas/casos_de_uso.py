@@ -15,6 +15,7 @@ from .entidades import (
     EfectividadApertura,
     EstadoApertura,
     EstadisticaApertura,
+    EstadisticaAperturaPorTorneo,
 )
 from .puertos import RepositorioAperturas
 
@@ -75,3 +76,36 @@ class ConsultarEstadisticasGeneralesApertura:
                 "No existen estadísticas para la apertura indicada."
             )
         return estadistica
+
+
+@dataclass
+class ConsultarEstadisticasPorTorneo:
+    """RF-08.5: estadísticas de una apertura filtradas por contexto competitivo."""
+
+    repositorio: RepositorioAperturas
+
+    def ejecutar(
+        self,
+        id_apertura: str,
+        torneo: Optional[str] = None,
+        anio: Optional[int] = None,
+        control_tiempo: Optional[str] = None,
+        color: Optional[ColorApertura] = None,
+        nivel_rival: Optional[str] = None,
+        rival: Optional[str] = None,
+    ) -> List[EstadisticaAperturaPorTorneo]:
+        if self.repositorio.buscar_por_id(id_apertura) is None:
+            raise EntidadNoEncontrada("Apertura no encontrada.")
+        estadisticas = self.repositorio.listar_estadisticas_por_apertura(
+            id_apertura
+        )
+        return [
+            e
+            for e in estadisticas
+            if (torneo is None or e.torneo == torneo)
+            and (anio is None or e.anio == anio)
+            and (control_tiempo is None or e.control_tiempo == control_tiempo)
+            and (color is None or e.color == color)
+            and (nivel_rival is None or e.nivel_rival == nivel_rival)
+            and (rival is None or e.rival == rival)
+        ]

@@ -6,6 +6,7 @@ from datetime import date, datetime, timezone
 from typing import List, Optional
 
 from ..comun.errores import ErrorValidacion
+from ..comun.ids import nuevo_id
 from .entidades import RegistroAuditoria, TipoOperacion
 from .puertos import RepositorioAuditoria
 
@@ -30,7 +31,7 @@ class RegistrarCambio:
         if tipo_operacion not in TipoOperacion:
             raise ErrorValidacion("El tipo de operación es inválido.")
         registro = RegistroAuditoria(
-            id=generar_id_registro(),
+            id=nuevo_id("auditoria"),
             usuario=usuario,
             fecha_hora=datetime.now(timezone.utc),
             entidad_afectada=entidad_afectada,
@@ -58,7 +59,9 @@ class ConsultarHistorialCambios:
             return self.repositorio.listar_por_usuario(usuario)
         if dia:
             return self.repositorio.listar_por_fecha(dia)
-        return []
+        raise ErrorValidacion(
+            "Debe indicar al menos un filtro (entidad, usuario o fecha)."
+        )
 
 
 @dataclass
@@ -79,9 +82,3 @@ class ValidarIntegridadDatos:
             raise ErrorValidacion(
                 "No está permitido eliminar información histórica sin autorización."
             )
-
-
-def generar_id_registro() -> str:
-    import uuid
-
-    return str(uuid.uuid4())

@@ -52,7 +52,7 @@ class PatronDetectado:
     tipo: TipoPatron
     descripcion: str
     frecuencia_absoluta: int
-    frecuencia_relativa: float
+    frecuencia_relativa: Optional[float] = None
     periodo_inicio: Optional[date] = None
     periodo_fin: Optional[date] = None
 

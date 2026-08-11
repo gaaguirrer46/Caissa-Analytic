@@ -1,11 +1,12 @@
 """Casos de uso (puertos primarios / driving) del módulo de Indicadores."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import date, datetime
-from typing import Dict, List
+from dataclasses import dataclass, field
+from datetime import date, datetime, timezone
+from typing import Dict, List, Optional
 
-from ..comun.errores import EntidadNoEncontrada
+from ..comun.errores import EntidadNoEncontrada, ErrorValidacion
+from ..comun.ids import nuevo_id
 from ..usuarios.entidades import Rol
 from .entidades import (
     Alerta,
@@ -14,20 +15,23 @@ from .entidades import (
     EstadoAlerta,
     FormatoReporte,
     IndicadorRendimiento,
+    PeriodoInstitucional,
     RangoEvaluacion,
     Reporte,
+    TendenciaComparada,
     TipoAlerta,
     TipoIndicador,
     TipoReporte,
 )
 from .puertos import (
     ProveedorDatosRendimiento,
+    ProveedorRangosEvaluacion,
     RepositorioIndicadores,
     ServicioGeneracionReportes,
 )
 
-# Rangos de evaluación por defecto (configurables, con valores en el dominio).
-# Cada valor límite representa el piso del rango "verde" / "excelente".
+# Rangos de evaluación por defecto (RNF-07.2: configurables, con valores en el
+# dominio). Cada valor límite representa el piso del rango.
 RANGOS_POR_DEFECTO: dict[TipoIndicador, tuple[float, float, float]] = {
     TipoIndicador.ACCURACY: (85, 75, 60),
     TipoIndicador.CUMPLIMIENTO_ENTRENAMIENTO: (90, 75, 50),
@@ -42,103 +46,157 @@ RANGOS_POR_DEFECTO: dict[TipoIndicador, tuple[float, float, float]] = {
     TipoIndicador.BLUNDERS: (1, 3, 5),
 }
 
+# Indicadores "menor es mejor": el valor del rango se interpreta como tope.
+_INDICADORES_MENOR_ES_MEJOR = frozenset(
+    {TipoIndicador.ACPL, TipoIndicador.BLUNDERS}
+)
 
-def _evaluar(
-    tipo: TipoIndicador, valor: float
-) -> RangoEvaluacion:
-    """Aplica los rangos por defecto; si el valor no tiene rango definido,
-    se asigna ACEPTABLE por defecto (configuración futura lo sobreescribe)."""
-    rangos = RANGOS_POR_DEFECTO.get(tipo)
-    if rangos is None:
-        return RangoEvaluacion.ACEPTABLE
-    excelente, bueno, aceptable = rangos
-    if tipo in (TipoIndicador.ACPL, TipoIndicador.BLUNDERS):
-        # En estos indicadores un valor menor es mejor.
-        if valor <= excelente:
-            return RangoEvaluacion.EXCELENTE
-        if valor <= bueno:
-            return RangoEvaluacion.BUENO
-        if valor <= aceptable:
-            return RangoEvaluacion.ACEPTABLE
-        return RangoEvaluacion.REQUIERE_INTERVENCION
-    if valor >= excelente:
-        return RangoEvaluacion.EXCELENTE
-    if valor >= bueno:
-        return RangoEvaluacion.BUENO
-    if valor >= aceptable:
-        return RangoEvaluacion.ACEPTABLE
-    return RangoEvaluacion.REQUIERE_INTERVENCION
+# Tipos comparables con los datos disponibles del proveedor (RF-09.6/RF-11.4).
+TIPOS_COMPARABLES = [
+    TipoIndicador.ACCURACY,
+    TipoIndicador.ACPL,
+    TipoIndicador.BLUNDERS,
+    TipoIndicador.CUMPLIMIENTO_ENTRENAMIENTO,
+    TipoIndicador.CUMPLIMIENTO_OBJETIVOS,
+    TipoIndicador.PORCENTAJE_RESULTADOS,
+    TipoIndicador.ASISTENCIA,
+    TipoIndicador.PARTIDAS_ANALIZADAS,
+    TipoIndicador.PARTICIPACION_TORNEOS,
+    TipoIndicador.EJERCICIOS_TACTICOS_RESUELTOS,
+    TipoIndicador.RATING_FIDE,
+]
 
 
 @dataclass
-class CalcularIndicadoresPrincipales:
+class EvaluadorRangos:
+    """RNF-07.2: aplica la configuración de rangos o los valores por defecto."""
+
+    proveedor_configuracion: Optional[ProveedorRangosEvaluacion] = None
+
+    def evaluar(self, tipo: TipoIndicador, valor: float) -> RangoEvaluacion:
+        rangos = self._obtener_rangos(tipo)
+        if rangos is None:
+            return RangoEvaluacion.ACEPTABLE
+        excelente, bueno, aceptable = rangos
+        if tipo in _INDICADORES_MENOR_ES_MEJOR:
+            if valor <= excelente:
+                return RangoEvaluacion.EXCELENTE
+            if valor <= bueno:
+                return RangoEvaluacion.BUENO
+            if valor <= aceptable:
+                return RangoEvaluacion.ACEPTABLE
+            return RangoEvaluacion.REQUIERE_INTERVENCION
+        if valor >= excelente:
+            return RangoEvaluacion.EXCELENTE
+        if valor >= bueno:
+            return RangoEvaluacion.BUENO
+        if valor >= aceptable:
+            return RangoEvaluacion.ACEPTABLE
+        return RangoEvaluacion.REQUIERE_INTERVENCION
+
+    def _obtener_rangos(
+        self, tipo: TipoIndicador
+    ) -> Optional[tuple[float, float, float]]:
+        if self.proveedor_configuracion is not None:
+            configurados = self.proveedor_configuracion.rangos(tipo)
+            if configurados is not None:
+                return configurados
+        return RANGOS_POR_DEFECTO.get(tipo)
+
+
+@dataclass
+class _BaseCalculoIndicadores:
+    """Base común para la creación y persistencia de indicadores."""
+
     repositorio: RepositorioIndicadores
     proveedor: ProveedorDatosRendimiento
+    evaluador: EvaluadorRangos = field(default_factory=EvaluadorRangos)
+
+    def _crear(
+        self,
+        id_atleta: str,
+        tipo: TipoIndicador,
+        valor: float,
+        desde: date,
+        hasta: date,
+    ) -> IndicadorRendimiento:
+        return IndicadorRendimiento(
+            id=nuevo_id("indicador"),
+            id_atleta=id_atleta,
+            tipo=tipo,
+            valor=valor,
+            rango_evaluacion=self.evaluador.evaluar(tipo, valor),
+            periodo_inicio=desde,
+            periodo_fin=hasta,
+        )
+
+    def _persistir(
+        self, indicadores: List[IndicadorRendimiento]
+    ) -> List[IndicadorRendimiento]:
+        for indicador in indicadores:
+            self.repositorio.guardar(indicador)
+        return indicadores
+
+
+@dataclass
+class CalcularIndicadoresPrincipales(_BaseCalculoIndicadores):
+    """RF-09.1: métricas principales de rendimiento."""
 
     def ejecutar(
         self, id_atleta: str, desde: date, hasta: date
     ) -> List[IndicadorRendimiento]:
-        indicadores: List[IndicadorRendimiento] = []
-
-        accuracy = self.proveedor.accuracy_promedio(id_atleta, desde, hasta)
-        indicadores.append(
-            self._crear(id_atleta, TipoIndicador.ACCURACY, accuracy, desde, hasta)
-        )
-
-        cumplimiento = self._calcular_cumplimiento(id_atleta, desde, hasta)
-        indicadores.append(
+        indicadores: List[IndicadorRendimiento] = [
+            self._crear(
+                id_atleta,
+                TipoIndicador.ACCURACY,
+                self.proveedor.accuracy_promedio(id_atleta, desde, hasta),
+                desde,
+                hasta,
+            ),
+            self._crear(
+                id_atleta,
+                TipoIndicador.ACPL,
+                self.proveedor.acpl_promedio(id_atleta, desde, hasta),
+                desde,
+                hasta,
+            ),
             self._crear(
                 id_atleta,
                 TipoIndicador.CUMPLIMIENTO_ENTRENAMIENTO,
-                cumplimiento,
+                self._calcular_cumplimiento(id_atleta, desde, hasta),
                 desde,
                 hasta,
-            )
-        )
-
-        objetivos = self.proveedor.cumplimiento_objetivos(id_atleta, desde, hasta)
-        indicadores.append(
+            ),
             self._crear(
                 id_atleta,
                 TipoIndicador.CUMPLIMIENTO_OBJETIVOS,
-                objetivos,
+                self.proveedor.cumplimiento_objetivos(id_atleta, desde, hasta),
                 desde,
                 hasta,
-            )
-        )
-
-        victorias, tablas, derrotas = self.proveedor.resultados(
-            id_atleta, desde, hasta
-        )
-        total = victorias + tablas + derrotas
-        porcentaje_resultados = (
-            ((victorias + 0.5 * tablas) / total * 100) if total else 0.0
-        )
-        indicadores.append(
+            ),
             self._crear(
                 id_atleta,
                 TipoIndicador.PORCENTAJE_RESULTADOS,
-                porcentaje_resultados,
+                self._porcentaje_resultados(id_atleta, desde, hasta),
                 desde,
                 hasta,
-            )
-        )
-
-        blunders = self.proveedor.blunders_totales(id_atleta, desde, hasta)
-        indicadores.append(
+            ),
             self._crear(
-                id_atleta, TipoIndicador.BLUNDERS, float(blunders), desde, hasta
-            )
-        )
-
-        rating = self.proveedor.rating_fide(id_atleta, "clasicas")
-        indicadores.append(
-            self._crear(id_atleta, TipoIndicador.RATING_FIDE, float(rating), desde, hasta)
-        )
-
-        for indicador in indicadores:
-            self.repositorio.guardar(indicador)
-        return indicadores
+                id_atleta,
+                TipoIndicador.BLUNDERS,
+                float(self.proveedor.blunders_totales(id_atleta, desde, hasta)),
+                desde,
+                hasta,
+            ),
+            self._crear(
+                id_atleta,
+                TipoIndicador.RATING_FIDE,
+                float(self.proveedor.rating_fide(id_atleta, "clasicas")),
+                desde,
+                hasta,
+            ),
+        ]
+        return self._persistir(indicadores)
 
     def _calcular_cumplimiento(
         self, id_atleta: str, desde: date, hasta: date
@@ -151,29 +209,21 @@ class CalcularIndicadoresPrincipales:
         )
         return (ejecutadas / planificadas) * 100
 
-    def _crear(
-        self,
-        id_atleta: str,
-        tipo: TipoIndicador,
-        valor: float,
-        desde: date,
-        hasta: date,
-    ) -> IndicadorRendimiento:
-        return IndicadorRendimiento(
-            id=generar_id_indicador(),
-            id_atleta=id_atleta,
-            tipo=tipo,
-            valor=valor,
-            rango_evaluacion=_evaluar(tipo, valor),
-            periodo_inicio=desde,
-            periodo_fin=hasta,
+    def _porcentaje_resultados(
+        self, id_atleta: str, desde: date, hasta: date
+    ) -> float:
+        victorias, tablas, derrotas = self.proveedor.resultados(
+            id_atleta, desde, hasta
         )
+        total = victorias + tablas + derrotas
+        if total == 0:
+            return 0.0
+        return ((victorias + 0.5 * tablas) / total) * 100
 
 
 @dataclass
-class CalcularIndicadoresSecundarios:
-    repositorio: RepositorioIndicadores
-    proveedor: ProveedorDatosRendimiento
+class CalcularIndicadoresSecundarios(_BaseCalculoIndicadores):
+    """RF-09.2: métricas secundarias de actividad."""
 
     def ejecutar(
         self, id_atleta: str, desde: date, hasta: date
@@ -207,36 +257,18 @@ class CalcularIndicadoresSecundarios:
             self._crear(
                 id_atleta,
                 TipoIndicador.PARTICIPACION_TORNEOS,
-                float(self.proveedor.partidas_jugadas(id_atleta, desde, hasta)),
+                float(self.proveedor.torneos_jugados(id_atleta, desde, hasta)),
                 desde,
                 hasta,
             ),
         ]
-        for indicador in indicadores:
-            self.repositorio.guardar(indicador)
-        return indicadores
-
-    def _crear(
-        self,
-        id_atleta: str,
-        tipo: TipoIndicador,
-        valor: float,
-        desde: date,
-        hasta: date,
-    ) -> IndicadorRendimiento:
-        return IndicadorRendimiento(
-            id=generar_id_indicador(),
-            id_atleta=id_atleta,
-            tipo=tipo,
-            valor=valor,
-            rango_evaluacion=_evaluar(tipo, valor),
-            periodo_inicio=desde,
-            periodo_fin=hasta,
-        )
+        return self._persistir(indicadores)
 
 
 @dataclass
 class GenerarDashboardEntrenador:
+    """RF-11.1: vista consolidada del equipo con alertas automáticas."""
+
     repositorio: RepositorioIndicadores
     proveedor: ProveedorDatosRendimiento
 
@@ -251,8 +283,8 @@ class GenerarDashboardEntrenador:
         return self.repositorio.guardar_dashboard_entrenador(dashboard)
 
     def _detectar_alertas(self, atletas: list) -> List[Alerta]:
-        """RF-09: las alertas se generan automáticamente cuando un indicador
-        cae en 'Requiere Intervención'."""
+        """RF-09.3: alertas automáticas cuando un indicador cae en
+        'Requiere Intervención'."""
         alertas: List[Alerta] = []
         for atleta in atletas:
             id_atleta = getattr(atleta, "id", "")
@@ -261,10 +293,10 @@ class GenerarDashboardEntrenador:
                 if indicador.rango_evaluacion == RangoEvaluacion.REQUIERE_INTERVENCION:
                     alertas.append(
                         Alerta(
-                            id=generar_id_alerta(),
+                            id=nuevo_id("alerta"),
                             tipo=self._tipo_alerta(indicador.tipo),
                             id_atleta=id_atleta,
-                            fecha_generacion=datetime.now(),
+                            fecha_generacion=datetime.now(timezone.utc),
                         )
                     )
         return alertas
@@ -280,6 +312,8 @@ class GenerarDashboardEntrenador:
 
 @dataclass
 class GenerarDashboardAtleta:
+    """RF-11.2: vista personal con KPIs tipo semáforo."""
+
     repositorio: RepositorioIndicadores
     proveedor: ProveedorDatosRendimiento
 
@@ -301,7 +335,100 @@ class GenerarDashboardAtleta:
 
 
 @dataclass
+class CompararTendencias:
+    """RF-09.6 / RF-11.4: compara indicadores entre dos periodos."""
+
+    proveedor: ProveedorDatosRendimiento
+
+    def ejecutar(
+        self,
+        id_atleta: str,
+        desde_anterior: date,
+        hasta_anterior: date,
+        desde_actual: date,
+        hasta_actual: date,
+        tipos: Optional[List[TipoIndicador]] = None,
+    ) -> List[TendenciaComparada]:
+        if desde_anterior > hasta_anterior or desde_actual > hasta_actual:
+            raise ErrorValidacion(
+                "Los periodos a comparar son inválidos (fecha inicial mayor que final)."
+            )
+        if desde_actual < desde_anterior:
+            raise ErrorValidacion(
+                "El periodo actual no puede iniciar antes que el periodo anterior."
+            )
+        tipos = tipos or self._tipos_comparables()
+        if not tipos:
+            raise ErrorValidacion("Debe indicar al menos un indicador a comparar.")
+        return [
+            TendenciaComparada(
+                tipo=tipo,
+                valor_anterior=self._valor(
+                    tipo, id_atleta, desde_anterior, hasta_anterior
+                ),
+                valor_actual=self._valor(tipo, id_atleta, desde_actual, hasta_actual),
+            )
+            for tipo in tipos
+        ]
+
+    def _tipos_comparables(self) -> List[TipoIndicador]:
+        return list(TIPOS_COMPARABLES)
+
+    def _valor(
+        self, tipo: TipoIndicador, id_atleta: str, desde: date, hasta: date
+    ) -> float:
+        p = self.proveedor
+        if tipo == TipoIndicador.ACCURACY:
+            return p.accuracy_promedio(id_atleta, desde, hasta)
+        if tipo == TipoIndicador.ACPL:
+            return p.acpl_promedio(id_atleta, desde, hasta)
+        if tipo == TipoIndicador.BLUNDERS:
+            return float(p.blunders_totales(id_atleta, desde, hasta))
+        if tipo == TipoIndicador.CUMPLIMIENTO_ENTRENAMIENTO:
+            return self._cumplimiento(id_atleta, desde, hasta)
+        if tipo == TipoIndicador.CUMPLIMIENTO_OBJETIVOS:
+            return p.cumplimiento_objetivos(id_atleta, desde, hasta)
+        if tipo == TipoIndicador.PORCENTAJE_RESULTADOS:
+            return self._porcentaje_resultados(id_atleta, desde, hasta)
+        if tipo == TipoIndicador.ASISTENCIA:
+            return p.porcentaje_asistencia(id_atleta, desde, hasta)
+        if tipo == TipoIndicador.PARTIDAS_ANALIZADAS:
+            return float(p.partidas_analizadas(id_atleta, desde, hasta))
+        if tipo == TipoIndicador.PARTICIPACION_TORNEOS:
+            return float(p.torneos_jugados(id_atleta, desde, hasta))
+        if tipo == TipoIndicador.EJERCICIOS_TACTICOS_RESUELTOS:
+            return float(p.ejercicios_tacticos_resueltos(id_atleta, desde, hasta))
+        if tipo == TipoIndicador.RATING_FIDE:
+            return float(p.rating_fide(id_atleta, "clasicas"))
+        raise ErrorValidacion(
+            f"El indicador {tipo.value} no es comparable con los datos disponibles."
+        )
+
+    def _cumplimiento(self, id_atleta: str, desde: date, hasta: date) -> float:
+        planificadas = self.proveedor.horas_planificadas(id_atleta, desde, hasta)
+        if planificadas <= 0:
+            return 0.0
+        ejecutadas = self.proveedor.horas_entrenadas_aprobadas(
+            id_atleta, desde, hasta
+        )
+        return (ejecutadas / planificadas) * 100
+
+    def _porcentaje_resultados(
+        self, id_atleta: str, desde: date, hasta: date
+    ) -> float:
+        victorias, tablas, derrotas = self.proveedor.resultados(
+            id_atleta, desde, hasta
+        )
+        total = victorias + tablas + derrotas
+        if total == 0:
+            return 0.0
+        return ((victorias + 0.5 * tablas) / total) * 100
+
+
+@dataclass
 class GenerarReporte:
+    """RF-11.5: genera un reporte a partir de contenido definido por el llamador."""
+
     servicio_reporte: ServicioGeneracionReportes
 
     def ejecutar(
@@ -314,7 +441,7 @@ class GenerarReporte:
         ruta_destino: str,
     ) -> str:
         reporte = Reporte(
-            id=generar_id_reporte(),
+            id=nuevo_id("reporte"),
             tipo=tipo,
             formato=formato,
             titulo=titulo,
@@ -353,7 +480,7 @@ class GenerarReporteIntegralAtleta:
             "rating_fide": self.proveedor.rating_fide(id_atleta, "clasicas"),
         }
         reporte = Reporte(
-            id=generar_id_reporte(),
+            id=nuevo_id("reporte"),
             tipo=TipoReporte.INDIVIDUAL,
             formato=formato,
             titulo="Informe Integral del Atleta",
@@ -363,19 +490,69 @@ class GenerarReporteIntegralAtleta:
         return self.servicio_reporte.generar(reporte, ruta_destino)
 
 
-def generar_id_indicador() -> str:
-    import uuid
+@dataclass
+class GenerarReporteGrupal:
+    """RF-11.6: reporte comparativo entre atletas, asistencia y cumplimiento."""
 
-    return str(uuid.uuid4())
+    servicio_reporte: ServicioGeneracionReportes
+    proveedor: ProveedorDatosRendimiento
+
+    SECCIONES_OBLIGATORIAS = [
+        "Comparativo entre atletas",
+        "Asistencia",
+        "Cumplimiento del entrenamiento",
+    ]
+
+    def ejecutar(
+        self,
+        id_entrenador: str,
+        formato: FormatoReporte,
+        ruta_destino: str,
+    ) -> str:
+        atletas = self.proveedor.atletas_por_entrenador(id_entrenador)
+        contenido = {
+            "id_entrenador": id_entrenador,
+            "cantidad_atletas": len(atletas),
+            "atletas": [getattr(a, "id", "") for a in atletas],
+        }
+        reporte = Reporte(
+            id=nuevo_id("reporte"),
+            tipo=TipoReporte.GRUPAL,
+            formato=formato,
+            titulo="Reporte Grupal del Equipo",
+            secciones=list(self.SECCIONES_OBLIGATORIAS),
+            contenido=contenido,
+        )
+        return self.servicio_reporte.generar(reporte, ruta_destino)
 
 
-def generar_id_alerta() -> str:
-    import uuid
+@dataclass
+class GenerarReporteInstitucional:
+    """RF-11.7: informes mensual, trimestral y anual."""
 
-    return str(uuid.uuid4())
+    servicio_reporte: ServicioGeneracionReportes
 
+    SECCIONES_OBLIGATORIAS = [
+        "Resumen del periodo",
+        "Rendimiento del equipo",
+        "Asistencia y cumplimiento",
+        "Objetivos SMART",
+    ]
 
-def generar_id_reporte() -> str:
-    import uuid
-
-    return str(uuid.uuid4())
+    def ejecutar(
+        self,
+        periodo: PeriodoInstitucional,
+        formato: FormatoReporte,
+        ruta_destino: str,
+    ) -> str:
+        if periodo not in PeriodoInstitucional:
+            raise ErrorValidacion("El periodo institucional es inválido.")
+        reporte = Reporte(
+            id=nuevo_id("reporte"),
+            tipo=TipoReporte.INSTITUCIONAL,
+            formato=formato,
+            titulo=f"Informe {periodo.value}",
+            secciones=list(self.SECCIONES_OBLIGATORIAS),
+            contenido={"periodo": periodo.value},
+        )
+        return self.servicio_reporte.generar(reporte, ruta_destino)

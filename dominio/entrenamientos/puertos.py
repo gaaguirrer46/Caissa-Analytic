@@ -34,6 +34,10 @@ class RepositorioEntrenamientos(ABC):
         """Aprueba la ejecución reportada."""
 
     @abstractmethod
+    def buscar_sesion(self, id_sesion: str) -> Optional[SesionEntrenamiento]:
+        """Devuelve una sesión por id, o None."""
+
+    @abstractmethod
     def listar_por_semana(self, id_atleta: str, semana: int, anio: int) -> Optional[PlanEntrenamientoSemanal]:
         """Devuelve el plan de la semana del atleta."""
 
