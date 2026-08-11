@@ -1,0 +1,64 @@
+"""Puertos secundarios (driven) del módulo de Entrenamientos."""
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import List, Optional
+
+from .entidades import (
+    Asistencia,
+    EjecucionEntrenamiento,
+    PlanEntrenamientoSemanal,
+    SesionEntrenamiento,
+)
+
+
+class RepositorioEntrenamientos(ABC):
+    @abstractmethod
+    def guardar_plan(self, plan: PlanEntrenamientoSemanal) -> PlanEntrenamientoSemanal:
+        """Persiste el plan semanal de un atleta."""
+
+    @abstractmethod
+    def actualizar_sesion(self, sesion: SesionEntrenamiento) -> SesionEntrenamiento:
+        """Actualiza una sesión (estado, reprogramación, etc.)."""
+
+    @abstractmethod
+    def registrar_ejecucion(
+        self, ejecucion: EjecucionEntrenamiento
+    ) -> EjecucionEntrenamiento:
+        """Registra la ejecución reportada por el atleta."""
+
+    @abstractmethod
+    def aprobar_ejecucion(
+        self, id_ejecucion: str
+    ) -> EjecucionEntrenamiento:
+        """Aprueba la ejecución reportada."""
+
+    @abstractmethod
+    def listar_por_semana(self, id_atleta: str, semana: int, anio: int) -> Optional[PlanEntrenamientoSemanal]:
+        """Devuelve el plan de la semana del atleta."""
+
+    @abstractmethod
+    def listar_por_atleta(self, id_atleta: str) -> List[PlanEntrenamientoSemanal]:
+        """Devuelve el historial completo de planes del atleta."""
+
+    @abstractmethod
+    def obtener_historial(self, id_atleta: str) -> List[PlanEntrenamientoSemanal]:
+        """Devuelve las semanas anteriores conservando todos los estados."""
+
+
+class RepositorioAsistencia(ABC):
+    @abstractmethod
+    def registrar(self, asistencia: Asistencia) -> Asistencia:
+        """Registra la asistencia después de una sesión."""
+
+    @abstractmethod
+    def listar_por_sesion(self, id_sesion: str) -> List[Asistencia]:
+        """Devuelve las asistencias de una sesión."""
+
+    @abstractmethod
+    def listar_por_atleta(self, id_atleta: str) -> List[Asistencia]:
+        """Devuelve las asistencias de un atleta."""
+
+    @abstractmethod
+    def calcular_porcentaje(self, id_atleta: str) -> float:
+        """Devuelve el porcentaje de asistencia del atleta."""
