@@ -1,0 +1,8 @@
+# Documentación base
+Documentación base/
+Documentación base/Desarrollo de Se Caissa Analytics.md
+Documentación base/Nuevo Documento de texto.txt
+
+# Caché de Python (bytecode compilado, se regenera automáticamente)
+__pycache__/
+*.pyc

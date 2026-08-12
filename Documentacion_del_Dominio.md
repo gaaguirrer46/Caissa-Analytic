@@ -46,13 +46,13 @@ Esa separación es la base de la **arquitectura hexagonal** (puertos y adaptador
 
 ```mermaid
 flowchart TB
-    subgraph Primarios["🖥️ Adaptadores Primarios (Driving)"]
+    subgraph Primarios["Adaptadores Primarios (Driving)"]
         WEB["Web API (FastAPI)"]
         CLI["CLI / Scripts"]
         TEST["Tests"]
     end
 
-    subgraph DOMINIO["📦 DOMINIO (este paquete)"]
+    subgraph DOMINIO["DOMINIO (este paquete)"]
         direction TB
         ENT["Entidades"]
         PUERTOS["Puertos (interfaces)"]
@@ -60,7 +60,7 @@ flowchart TB
         REGLAS["Reglas de Negocio"]
     end
 
-    subgraph Secundarios["🗄️ Adaptadores Secundarios (Driven)"]
+ subgraph Secundarios[" Adaptadores Secundarios (Driven)"]
         BD[(SQLite / PostgreSQL)]
         PGN["Parser PGN"]
         MOTOR["Stockfish"]
@@ -236,7 +236,7 @@ classDiagram
 
 #### Reglas de Negocio Clave
 
-- Solo puede existir **un único usuario ENTRENADOR** como administrador (RF-01.3).
+- Solo puede existir **un único usuario ENTRENADOR** como administrador (RF-01.8).
 - Correo con formato válido y contraseña de al menos 8 caracteres.
 - Un entrenador tiene máximo 40 atletas; un atleta tiene entre 1 y 3 entrenadores.
 
@@ -421,7 +421,7 @@ classDiagram
 
 - Todo objetivo debe tener **fecha de inicio y límite obligatorias**.
 - **RETRASADO** = porcentaje real < porcentaje esperado respecto a la fecha límite.
-- El semáforo es: 🟢 verde (finalizado), 🟡 amarillo (en proceso), 🔴 rojo (retrasado).
+- El semáforo es: verde (finalizado), amarillo (en proceso), rojo (retrasado).
 - **Solo el entrenador** puede marcar un objetivo como cumplido.
 
 ---
@@ -1277,7 +1277,7 @@ flowchart LR
     IND -.->|"ProveedorDatosRendimiento"| APER
     PAT -.->|"ProveedorDatosPartidas"| PAR
     PAT -.->|"ProveedorDatosPartidas"| ENT
-    APER -.->|"ProveedorEvaluacionMotor"| MOTOR["🤖 Motor (adaptador)"]
+    APER -.->|"ProveedorEvaluacionMotor"| MOTOR["Motor (adaptador)"]
 
     style Comun fill:#f9f,stroke:#333,stroke-width:2px
     style Modulos fill:#bbf,stroke:#333,stroke-width:1px

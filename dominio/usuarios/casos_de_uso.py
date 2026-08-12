@@ -54,7 +54,7 @@ class CrearUsuario:
 
     def ejecutar(self, correo: str, contrasena: str, rol: Rol) -> Usuario:
         self._validar_datos(correo, contrasena, rol)
-        # RF-01.3: solo puede existir un usuario con rol ENTRENADOR.
+        # RF-01.8: solo puede existir un usuario con rol ENTRENADOR.
         if rol == Rol.ENTRENADOR and any(
             u.rol == Rol.ENTRENADOR for u in self.repositorio.listar_todos()
         ):
