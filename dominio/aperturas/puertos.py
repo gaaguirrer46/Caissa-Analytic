@@ -20,24 +20,24 @@ class RepositorioAperturas(ABC):
 
     @abstractmethod
     def actualizar_estado(
-        self, id_apertura: str, estado: str
+        self, id_apertura: int, estado: str
     ) -> AperturaRepertorio:
         """Actualiza el estado de una apertura."""
 
     @abstractmethod
     def buscar_por_atleta_y_color(
-        self, id_atleta: str, color: ColorApertura
+        self, id_atleta: int, color: ColorApertura
     ) -> List[AperturaRepertorio]:
         """Devuelve el repertorio del atleta filtrado por color."""
 
     @abstractmethod
     def listar_por_efectividad(
-        self, id_atleta: str, efectividad: EfectividadApertura
+        self, id_atleta: int, efectividad: EfectividadApertura
     ) -> List[AperturaRepertorio]:
         """Devuelve aperturas según su nivel de efectividad."""
 
     @abstractmethod
-    def buscar_por_id(self, id_apertura: str) -> Optional[AperturaRepertorio]:
+    def buscar_por_id(self, id_apertura: int) -> Optional[AperturaRepertorio]:
         """Devuelve una apertura del repertorio por id."""
 
     @abstractmethod
@@ -54,7 +54,7 @@ class RepositorioAperturas(ABC):
 
     @abstractmethod
     def buscar_estadistica(
-        self, id_apertura: str
+        self, id_apertura: int
     ) -> Optional[EstadisticaApertura]:
         """Devuelve las estadísticas generales de una apertura."""
 

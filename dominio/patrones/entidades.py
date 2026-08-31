@@ -59,6 +59,6 @@ class PatronDetectado:
 
 @dataclass
 class AnalisisPatrones:
-    id_atleta: str
+    id_atleta: int
     patrones: List[PatronDetectado] = field(default_factory=list)
     minimo_requerido: int = MINIMO_PARTIDAS_PATRON

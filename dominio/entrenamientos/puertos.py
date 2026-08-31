@@ -29,24 +29,24 @@ class RepositorioEntrenamientos(ABC):
 
     @abstractmethod
     def aprobar_ejecucion(
-        self, id_ejecucion: str
+        self, id_ejecucion: int
     ) -> EjecucionEntrenamiento:
         """Aprueba la ejecución reportada."""
 
     @abstractmethod
-    def buscar_sesion(self, id_sesion: str) -> Optional[SesionEntrenamiento]:
+    def buscar_sesion(self, id_sesion: int) -> Optional[SesionEntrenamiento]:
         """Devuelve una sesión por id, o None."""
 
     @abstractmethod
-    def listar_por_semana(self, id_atleta: str, semana: int, anio: int) -> Optional[PlanEntrenamientoSemanal]:
+    def listar_por_semana(self, id_atleta: int, semana: int, anio: int) -> Optional[PlanEntrenamientoSemanal]:
         """Devuelve el plan de la semana del atleta."""
 
     @abstractmethod
-    def listar_por_atleta(self, id_atleta: str) -> List[PlanEntrenamientoSemanal]:
+    def listar_por_atleta(self, id_atleta: int) -> List[PlanEntrenamientoSemanal]:
         """Devuelve el historial completo de planes del atleta."""
 
     @abstractmethod
-    def obtener_historial(self, id_atleta: str) -> List[PlanEntrenamientoSemanal]:
+    def obtener_historial(self, id_atleta: int) -> List[PlanEntrenamientoSemanal]:
         """Devuelve las semanas anteriores conservando todos los estados."""
 
 
@@ -56,13 +56,13 @@ class RepositorioAsistencia(ABC):
         """Registra la asistencia después de una sesión."""
 
     @abstractmethod
-    def listar_por_sesion(self, id_sesion: str) -> List[Asistencia]:
+    def listar_por_sesion(self, id_sesion: int) -> List[Asistencia]:
         """Devuelve las asistencias de una sesión."""
 
     @abstractmethod
-    def listar_por_atleta(self, id_atleta: str) -> List[Asistencia]:
+    def listar_por_atleta(self, id_atleta: int) -> List[Asistencia]:
         """Devuelve las asistencias de un atleta."""
 
     @abstractmethod
-    def calcular_porcentaje(self, id_atleta: str) -> float:
+    def calcular_porcentaje(self, id_atleta: int) -> float:
         """Devuelve el porcentaje de asistencia del atleta."""

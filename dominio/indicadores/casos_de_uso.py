@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from typing import Dict, List, Optional
 
 from ..comun.errores import EntidadNoEncontrada, ErrorValidacion
-from ..comun.ids import nuevo_id
+from ..comun.ids import nuevo_id_entero
 from ..usuarios.entidades import Rol
 from .entidades import (
     Alerta,
@@ -114,14 +114,14 @@ class _BaseCalculoIndicadores:
 
     def _crear(
         self,
-        id_atleta: str,
+        id_atleta: int,
         tipo: TipoIndicador,
         valor: float,
         desde: date,
         hasta: date,
     ) -> IndicadorRendimiento:
         return IndicadorRendimiento(
-            id=nuevo_id("indicador"),
+            id=nuevo_id_entero(),
             id_atleta=id_atleta,
             tipo=tipo,
             valor=valor,

@@ -40,7 +40,7 @@ class EstadoAsistencia(str, Enum):
 
 @dataclass
 class SesionEntrenamiento:
-    id: str
+    id: int
     tipo: TipoEntrenamiento
     dia_semana: str
     horas_planificadas: float
@@ -52,8 +52,8 @@ class SesionEntrenamiento:
 
 @dataclass
 class PlanEntrenamientoSemanal:
-    id: str
-    id_atleta: str
+    id: int
+    id_atleta: int
     semana: int
     anio: int
     sesiones: List[SesionEntrenamiento] = field(default_factory=list)
@@ -80,8 +80,8 @@ class PlanEntrenamientoSemanal:
 
 @dataclass
 class EjecucionEntrenamiento:
-    id: str
-    id_sesion: str
+    id: int
+    id_sesion: int
     horas_ejecutadas: float
     fecha_registro: date
     registrado_por_atleta: bool = True
@@ -90,9 +90,9 @@ class EjecucionEntrenamiento:
 
 @dataclass
 class Asistencia:
-    id: str
-    id_atleta: str
-    id_sesion: str
+    id: int
+    id_atleta: int
+    id_sesion: int
     fecha: date
     estado: EstadoAsistencia
 
@@ -101,7 +101,7 @@ class Asistencia:
 class ResumenCumplimientoSemanal:
     """Contraste planificado vs ejecutado de una semana (RF-04.4)."""
 
-    id_atleta: str
+    id_atleta: int
     semana: int
     anio: int
     horas_planificadas: float

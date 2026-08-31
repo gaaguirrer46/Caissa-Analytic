@@ -21,12 +21,12 @@ class RepositorioIndicadores(ABC):
         """Persiste un indicador calculado."""
 
     @abstractmethod
-    def listar_por_atleta(self, id_atleta: str) -> List[IndicadorRendimiento]:
+    def listar_por_atleta(self, id_atleta: int) -> List[IndicadorRendimiento]:
         """Devuelve los indicadores de un atleta."""
 
     @abstractmethod
     def listar_por_periodo(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> List[IndicadorRendimiento]:
         """Devuelve los indicadores de un atleta en un periodo."""
 
@@ -48,82 +48,82 @@ class ProveedorDatosRendimiento(ABC):
 
     @abstractmethod
     def horas_entrenadas_aprobadas(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> float:
         """Horas de entrenamiento aprobadas en el periodo."""
 
     @abstractmethod
     def horas_planificadas(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> float:
         """Horas planificadas en el periodo."""
 
     @abstractmethod
     def accuracy_promedio(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> float:
         """Accuracy promedio de las partidas del periodo."""
 
     @abstractmethod
     def blunders_totales(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> int:
         """Blunders cometidos en el periodo."""
 
     @abstractmethod
     def acpl_promedio(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> float:
         """ACPL promedio en el periodo."""
 
     @abstractmethod
     def resultados(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> tuple[int, int, int]:
         """(victorias, tablas, derrotas) en el periodo."""
 
     @abstractmethod
     def partidas_analizadas(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> int:
         """Partidas analizadas en el periodo."""
 
     @abstractmethod
     def partidas_jugadas(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> int:
         """Partidas jugadas en el periodo."""
 
     @abstractmethod
     def torneos_jugados(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> int:
         """Torneos disputados en el periodo."""
 
     @abstractmethod
     def porcentaje_asistencia(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> float:
         """Porcentaje de asistencia en el periodo."""
 
     @abstractmethod
     def ejercicios_tacticos_resueltos(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> int:
         """Ejercicios tácticos resueltos en el periodo."""
 
     @abstractmethod
     def cumplimiento_objetivos(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> float:
         """Porcentaje de objetivos cumplidos en el periodo."""
 
     @abstractmethod
-    def rating_fide(self, id_atleta: str, tipo: str) -> int:
+    def rating_fide(self, id_atleta: int, tipo: str) -> int:
         """Rating FIDE actual (clasicas, rapidas, blitz)."""
 
     @abstractmethod
-    def atletas_por_entrenador(self, id_entrenador: str) -> list:
+    def atletas_por_entrenador(self, id_entrenador: int) -> list:
         """Lista de atletas asignados al entrenador."""
 
 

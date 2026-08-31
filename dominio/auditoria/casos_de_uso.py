@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from typing import List, Optional
 
 from ..comun.errores import ErrorValidacion
-from ..comun.ids import nuevo_id
+from ..comun.ids import nuevo_id_entero
 from .entidades import RegistroAuditoria, TipoOperacion
 from .puertos import RepositorioAuditoria
 
@@ -31,7 +31,7 @@ class RegistrarCambio:
         if tipo_operacion not in TipoOperacion:
             raise ErrorValidacion("El tipo de operación es inválido.")
         registro = RegistroAuditoria(
-            id=nuevo_id("auditoria"),
+            id=nuevo_id_entero(),
             usuario=usuario,
             fecha_hora=datetime.now(timezone.utc),
             entidad_afectada=entidad_afectada,

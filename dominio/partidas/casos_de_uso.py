@@ -139,7 +139,7 @@ class ConsultarEstadisticasPorFase:
     repositorio_partidas: RepositorioPartidas
     repositorio_analisis: RepositorioAnalisisTecnico
 
-    def ejecutar(self, id_atleta: str) -> EstadisticasFaseJuego:
+    def ejecutar(self, id_atleta: int) -> EstadisticasFaseJuego:
         partidas = self.repositorio_partidas.listar_por_atleta(id_atleta)
         analisis_list = self.repositorio_analisis.listar_por_atleta(id_atleta)
 
@@ -186,7 +186,7 @@ class ImportarPartidaDesdePGN:
     repositorio_partidas: RepositorioPartidas
     proveedor_pgn: ProveedorPGN
 
-    def ejecutar(self, contenido_pgn: str, id_atleta: str) -> List[Partida]:
+    def ejecutar(self, contenido_pgn: str, id_atleta: int) -> List[Partida]:
         partidas = self.proveedor_pgn.parsear(contenido_pgn)
         registradas: List[Partida] = []
         for partida in partidas:

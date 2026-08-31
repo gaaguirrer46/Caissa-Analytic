@@ -17,11 +17,11 @@ class RepositorioAtletas(ABC):
         """Actualiza el expediente de un atleta existente."""
 
     @abstractmethod
-    def buscar_por_id(self, id_atleta: str) -> Optional[Atleta]:
+    def buscar_por_id(self, id_atleta: int) -> Optional[Atleta]:
         """Devuelve el atleta por id, o None."""
 
     @abstractmethod
-    def listar_por_entrenador(self, id_entrenador: str) -> List[Atleta]:
+    def listar_por_entrenador(self, id_entrenador: int) -> List[Atleta]:
         """Devuelve los atletas asignados a un entrenador."""
 
     @abstractmethod
@@ -29,11 +29,11 @@ class RepositorioAtletas(ABC):
         """Devuelve todos los atletas activos."""
 
     @abstractmethod
-    def buscar_por_categoria(self, id_categoria: str) -> List[Atleta]:
+    def buscar_por_categoria(self, id_categoria: int) -> List[Atleta]:
         """Devuelve los atletas que pertenecen a una categoría."""
 
     @abstractmethod
-    def existe(self, id_atleta: str) -> bool:
+    def existe(self, id_atleta: int) -> bool:
         """Indica si el atleta existe."""
 
     @abstractmethod
@@ -55,5 +55,5 @@ class RepositorioCategorias(ABC):
         """Edita una categoría editable."""
 
     @abstractmethod
-    def eliminar(self, id_categoria: str) -> None:
+    def eliminar(self, id_categoria: int) -> None:
         """Elimina una categoría editable."""

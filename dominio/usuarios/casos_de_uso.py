@@ -13,7 +13,7 @@ from ..comun.errores import (
     ErrorAutenticacion,
     ErrorValidacion,
 )
-from ..comun.ids import nuevo_id
+from ..comun.ids import nuevo_id_entero
 from .entidades import Permiso, Rol, Usuario
 from .puertos import (
     PermisosPorRol,
@@ -63,7 +63,7 @@ class CrearUsuario:
             )
         hash_cont = self.servicio_hash.hashear(contrasena)
         usuario = Usuario(
-            id=nuevo_id("usuario"),
+            id=nuevo_id_entero(),
             correo=correo,
             hash_contrasena=hash_cont,
             rol=rol,
@@ -90,7 +90,7 @@ class VerificarPermiso:
 class ObtenerUsuarioActual:
     repositorio: RepositorioUsuarios
 
-    def ejecutar(self, id_usuario: str) -> Usuario:
+    def ejecutar(self, id_usuario: int) -> Usuario:
         usuario = self.repositorio.buscar_por_id(id_usuario)
         if usuario is None:
             raise EntidadNoEncontrada("Usuario no encontrado.")

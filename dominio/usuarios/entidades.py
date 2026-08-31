@@ -33,7 +33,7 @@ class Permiso(str, Enum):
 class Usuario:
     """Identidad de un usuario del sistema."""
 
-    id: str
+    id: Optional[int]
     correo: str
     hash_contrasena: str
     rol: Rol

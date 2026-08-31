@@ -41,8 +41,8 @@ class ClasificacionPartida(str, Enum):
 
 @dataclass
 class Partida:
-    id: str
-    id_atleta: str
+    id: int
+    id_atleta: int
     evento: str
     fecha: date
     jugador_blancas: str
@@ -66,7 +66,7 @@ class Partida:
 
 @dataclass
 class AnalisisTecnico:
-    id_partida: str
+    id_partida: int
     accuracy: Optional[float] = None
     acpl: Optional[float] = None
     blunders: int = 0
@@ -104,7 +104,7 @@ class EstadisticasFinales:
 
 @dataclass
 class EstadisticasFaseJuego:
-    id_atleta: str
+    id_atleta: int
     apertura: EstadisticasApertura = field(default_factory=EstadisticasApertura)
     medio_juego: EstadisticasMedioJuego = field(default_factory=EstadisticasMedioJuego)
     finales: EstadisticasFinales = field(default_factory=EstadisticasFinales)

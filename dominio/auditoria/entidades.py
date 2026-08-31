@@ -20,7 +20,7 @@ class TipoOperacion(str, Enum):
 class RegistroAuditoria:
     """Registro inmutable de una modificación."""
 
-    id: str
+    id: int
     usuario: str
     fecha_hora: datetime
     entidad_afectada: str

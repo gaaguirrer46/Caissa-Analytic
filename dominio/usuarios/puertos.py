@@ -20,7 +20,7 @@ class RepositorioUsuarios(ABC):
         """Devuelve el usuario asociado al correo, o None."""
 
     @abstractmethod
-    def buscar_por_id(self, id_usuario: str) -> Optional[Usuario]:
+    def buscar_por_id(self, id_usuario: int) -> Optional[Usuario]:
         """Devuelve el usuario por id, o None."""
 
     @abstractmethod

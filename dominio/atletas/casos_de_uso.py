@@ -14,7 +14,7 @@ from ..comun.errores import (
     EntidadNoEncontrada,
     ErrorValidacion,
 )
-from ..comun.ids import nuevo_id
+from ..comun.ids import nuevo_id_entero
 from ..comun.reglas_limites import (
     validar_capacidad_entrenador,
     validar_entrenadores_por_atleta,
@@ -75,7 +75,7 @@ class RegistrarAtleta:
         desconocidas = set(atleta.categorias) - predefinidas
         if desconocidas:
             raise ErrorValidacion(
-                f"Categorías inexistentes: {', '.join(sorted(desconocidas))}."
+                f"Categorías inexistentes: {', '.join(str(x) for x in sorted(desconocidas))}."
             )
 
 
@@ -94,7 +94,7 @@ class ActualizarPerfilAtleta:
 class ConsultarPerfilAtleta:
     repositorio_atletas: RepositorioAtletas
 
-    def ejecutar(self, id_atleta: str) -> Atleta:
+    def ejecutar(self, id_atleta: int) -> Atleta:
         atleta = self.repositorio_atletas.buscar_por_id(id_atleta)
         if atleta is None:
             raise EntidadNoEncontrada("Atleta no encontrado.")
@@ -106,7 +106,7 @@ class AsignarCategoriaAAtleta:
     repositorio_atletas: RepositorioAtletas
     repositorio_categorias: RepositorioCategorias
 
-    def ejecutar(self, id_atleta: str, id_categoria: str) -> Atleta:
+    def ejecutar(self, id_atleta: int, id_categoria: int) -> Atleta:
         atleta = self.repositorio_atletas.buscar_por_id(id_atleta)
         if atleta is None:
             raise EntidadNoEncontrada("Atleta no encontrado.")
@@ -125,7 +125,7 @@ class AsignarCategoriaAAtleta:
 class AsignarEntrenadorAAtleta:
     repositorio_atletas: RepositorioAtletas
 
-    def ejecutar(self, id_atleta: str, id_entrenador: str) -> Atleta:
+    def ejecutar(self, id_atleta: int, id_entrenador: int) -> Atleta:
         atleta = self.repositorio_atletas.buscar_por_id(id_atleta)
         if atleta is None:
             raise EntidadNoEncontrada("Atleta no encontrado.")
@@ -151,7 +151,7 @@ class ActualizarRating:
 
     def ejecutar(
         self,
-        id_atleta: str,
+        id_atleta: int,
         nuevo_rating: Rating,
         anio: int,
         torneo: Optional[str],
@@ -166,7 +166,7 @@ class ActualizarRating:
         # modifican ni eliminan, pero se permite actualizar el rating vigente
         # (p. ej. publicaciones oficiales periódicas del mismo año).
         snapshot = PerfilHistorico(
-            id=nuevo_id("hist"),
+            id=nuevo_id_entero(),
             anio=anio,
             torneo=torneo,
             rating=atleta.rating_actual,
@@ -180,5 +180,5 @@ class ActualizarRating:
 class ListarAtletasPorEntrenador:
     repositorio_atletas: RepositorioAtletas
 
-    def ejecutar(self, id_entrenador: str) -> List[Atleta]:
+    def ejecutar(self, id_entrenador: int) -> List[Atleta]:
         return self.repositorio_atletas.listar_por_entrenador(id_entrenador)

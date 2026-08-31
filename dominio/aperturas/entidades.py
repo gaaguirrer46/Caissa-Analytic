@@ -42,8 +42,8 @@ class EfectividadApertura(str, Enum):
 
 @dataclass
 class AperturaRepertorio:
-    id: str
-    id_atleta: str
+    id: int
+    id_atleta: int
     codigo_eco: str
     nombre: str
     variante: str = ""
@@ -57,7 +57,7 @@ class AperturaRepertorio:
 
 @dataclass
 class EstadisticaApertura:
-    id_apertura: str
+    id_apertura: int
     partidas_jugadas: int = 0
     victorias: int = 0
     empates: int = 0
@@ -89,7 +89,7 @@ class EstadisticaApertura:
 
 @dataclass
 class EstadisticaAperturaPorTorneo:
-    id_apertura: str
+    id_apertura: int
     torneo: str
     anio: int
     control_tiempo: Optional[str] = None

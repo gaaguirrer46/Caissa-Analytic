@@ -17,11 +17,11 @@ class RepositorioPartidas(ABC):
         """Persiste una partida."""
 
     @abstractmethod
-    def buscar_por_id(self, id_partida: str) -> Optional[Partida]:
+    def buscar_por_id(self, id_partida: int) -> Optional[Partida]:
         """Devuelve una partida por id, o None."""
 
     @abstractmethod
-    def listar_por_atleta(self, id_atleta: str) -> List[Partida]:
+    def listar_por_atleta(self, id_atleta: int) -> List[Partida]:
         """Devuelve las partidas de un atleta."""
 
     @abstractmethod
@@ -30,7 +30,7 @@ class RepositorioPartidas(ABC):
 
     @abstractmethod
     def listar_por_periodo(
-        self, id_atleta: str, desde: date, hasta: date
+        self, id_atleta: int, desde: date, hasta: date
     ) -> List[Partida]:
         """Devuelve las partidas de un atleta en un periodo."""
 
@@ -41,11 +41,11 @@ class RepositorioAnalisisTecnico(ABC):
         """Persiste el resumen técnico de una partida."""
 
     @abstractmethod
-    def buscar_por_partida(self, id_partida: str) -> Optional[AnalisisTecnico]:
+    def buscar_por_partida(self, id_partida: int) -> Optional[AnalisisTecnico]:
         """Devuelve el análisis de una partida, o None."""
 
     @abstractmethod
-    def listar_por_atleta(self, id_atleta: str) -> List[AnalisisTecnico]:
+    def listar_por_atleta(self, id_atleta: int) -> List[AnalisisTecnico]:
         """Devuelve los análisis de las partidas de un atleta."""
 
 

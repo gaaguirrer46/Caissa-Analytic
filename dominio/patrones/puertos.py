@@ -14,7 +14,7 @@ class ProveedorDatosPartidas(ABC):
     @abstractmethod
     def partidas_con_analisis(
         self,
-        id_atleta: str,
+        id_atleta: int,
         periodo_inicio: Optional[date] = None,
         periodo_fin: Optional[date] = None,
     ) -> List[tuple[Partida, AnalisisTecnico]]:
@@ -23,7 +23,7 @@ class ProveedorDatosPartidas(ABC):
     @abstractmethod
     def conteos_disciplina(
         self,
-        id_atleta: str,
+        id_atleta: int,
         periodo_inicio: Optional[date] = None,
         periodo_fin: Optional[date] = None,
     ) -> Dict[str, int]:

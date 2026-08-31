@@ -39,8 +39,8 @@ class IndicadorAvance:
 
 @dataclass
 class ObjetivoSmart:
-    id: str
-    id_atleta: str
+    id: int
+    id_atleta: int
     descripcion: str
     indicador_meta: TipoIndicadorAvance
     valor_meta: float

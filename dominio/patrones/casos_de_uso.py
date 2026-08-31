@@ -34,7 +34,7 @@ class DetectarPatronesError:
 
     def ejecutar(
         self,
-        id_atleta: str,
+        id_atleta: int,
         nivel: NivelMinimoPartidas = NivelMinimoPartidas.BASICO,
         periodo_inicio: Optional[date] = None,
         periodo_fin: Optional[date] = None,

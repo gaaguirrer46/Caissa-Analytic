@@ -6,7 +6,7 @@ from datetime import date
 from typing import List, Optional
 
 from ..comun.errores import EntidadNoEncontrada, ErrorValidacion
-from ..comun.ids import nuevo_id
+from ..comun.ids import nuevo_id_entero
 from ..usuarios.entidades import Rol
 from .entidades import (
     CALIFICACION_MAXIMA,
@@ -79,7 +79,7 @@ class ActualizarEvaluacion:
 
     def ejecutar(
         self,
-        id_evaluacion: str,
+        id_evaluacion: int,
         evaluacion_actualizada: EvaluacionAtleta,
         rol_usuario: Rol,
     ) -> EvaluacionAtleta:
@@ -104,7 +104,7 @@ class ConsultarEvaluacionesPorAtleta:
 
     def ejecutar(
         self,
-        id_atleta: str,
+        id_atleta: int,
         periodo: Optional[PeriodoEvaluacion] = None,
     ) -> List[EvaluacionAtleta]:
         if periodo is not None:
@@ -113,8 +113,8 @@ class ConsultarEvaluacionesPorAtleta:
 
 
 def nueva_evaluacion(
-    id_atleta: str,
-    id_entrenador: str,
+    id_atleta: int,
+    id_entrenador: int,
     periodo: PeriodoEvaluacion,
     referencia_periodo: str,
     fecha_realizacion: date,
@@ -126,7 +126,7 @@ def nueva_evaluacion(
 ) -> EvaluacionAtleta:
     """Factoría de EvaluacionAtleta con id autogenerado."""
     return EvaluacionAtleta(
-        id=nuevo_id("evaluacion"),
+        id=nuevo_id_entero(),
         id_atleta=id_atleta,
         id_entrenador=id_entrenador,
         periodo=periodo,

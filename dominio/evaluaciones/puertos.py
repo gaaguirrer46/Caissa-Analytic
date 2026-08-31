@@ -17,19 +17,19 @@ class RepositorioEvaluaciones(ABC):
         """Actualiza una evaluación existente."""
 
     @abstractmethod
-    def buscar_por_id(self, id_evaluacion: str) -> Optional[EvaluacionAtleta]:
+    def buscar_por_id(self, id_evaluacion: int) -> Optional[EvaluacionAtleta]:
         """Devuelve una evaluación por id, o None."""
 
     @abstractmethod
-    def listar_por_atleta(self, id_atleta: str) -> List[EvaluacionAtleta]:
+    def listar_por_atleta(self, id_atleta: int) -> List[EvaluacionAtleta]:
         """Devuelve las evaluaciones de un atleta."""
 
     @abstractmethod
-    def listar_por_entrenador(self, id_entrenador: str) -> List[EvaluacionAtleta]:
+    def listar_por_entrenador(self, id_entrenador: int) -> List[EvaluacionAtleta]:
         """Devuelve las evaluaciones realizadas por un entrenador."""
 
     @abstractmethod
     def listar_por_periodo(
-        self, id_atleta: str, periodo: PeriodoEvaluacion
+        self, id_atleta: int, periodo: PeriodoEvaluacion
     ) -> List[EvaluacionAtleta]:
         """Devuelve las evaluaciones de un atleta en un periodo dado."""

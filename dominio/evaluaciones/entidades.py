@@ -39,9 +39,9 @@ CALIFICACION_MAXIMA = 10
 class EvaluacionAtleta:
     """RF-10.4: calificación cuantitativa (1-10) y comentarios cualitativos."""
 
-    id: str
-    id_atleta: str
-    id_entrenador: str
+    id: int
+    id_atleta: int
+    id_entrenador: int
     periodo: PeriodoEvaluacion
     referencia_periodo: str
     fecha_realizacion: date

@@ -9,7 +9,7 @@ from ..comun.errores import (
     EntidadNoEncontrada,
     ErrorValidacion,
 )
-from ..comun.ids import nuevo_id
+from ..comun.ids import nuevo_id_entero
 from ..usuarios.entidades import Rol
 from .entidades import (
     EstadoObjetivo,
@@ -25,7 +25,7 @@ class CrearObjetivoSmart:
 
     def ejecutar(
         self,
-        id_atleta: str,
+        id_atleta: int,
         descripcion: str,
         indicador_meta: TipoIndicadorAvance,
         valor_meta: float,
@@ -49,7 +49,7 @@ class CrearObjetivoSmart:
             raise ErrorValidacion("Solo el entrenador o el atleta pueden proponer.")
 
         objetivo = ObjetivoSmart(
-            id=nuevo_id("objetivo"),
+            id=nuevo_id_entero(),
             id_atleta=id_atleta,
             descripcion=descripcion,
             indicador_meta=indicador_meta,
@@ -66,7 +66,7 @@ class CrearObjetivoSmart:
 class AprobarObjetivoSmart:
     repositorio: RepositorioObjetivos
 
-    def ejecutar(self, id_objetivo: str) -> ObjetivoSmart:
+    def ejecutar(self, id_objetivo: int) -> ObjetivoSmart:
         objetivo = self.repositorio.buscar_por_id(id_objetivo)
         if objetivo is None:
             raise EntidadNoEncontrada("Objetivo no encontrado.")
@@ -80,7 +80,7 @@ class CalcularAvanceObjetivo:
     repositorio: RepositorioObjetivos
     proveedor_datos: ProveedorDatosAvance
 
-    def ejecutar(self, id_objetivo: str) -> ObjetivoSmart:
+    def ejecutar(self, id_objetivo: int) -> ObjetivoSmart:
         objetivo = self.repositorio.buscar_por_id(id_objetivo)
         if objetivo is None:
             raise EntidadNoEncontrada("Objetivo no encontrado.")

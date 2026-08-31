@@ -68,8 +68,8 @@ class PeriodoInstitucional(str, Enum):
 
 @dataclass
 class IndicadorRendimiento:
-    id: str
-    id_atleta: str
+    id: int
+    id_atleta: int
     tipo: TipoIndicador
     valor: float
     rango_evaluacion: RangoEvaluacion
@@ -79,9 +79,9 @@ class IndicadorRendimiento:
 
 @dataclass
 class Alerta:
-    id: str
+    id: int
     tipo: TipoAlerta
-    id_atleta: str
+    id_atleta: int
     fecha_generacion: datetime
     estado: EstadoAlerta = EstadoAlerta.ACTIVA
 
@@ -93,12 +93,12 @@ class DashboardEntrenador:
     alertas: List[Alerta] = field(default_factory=list)
     cumplimiento_plan: dict = field(default_factory=dict)
     evolucion_rating_grupal: dict = field(default_factory=dict)
-    objetivos_pendientes: List[str] = field(default_factory=list)
+    objetivos_pendientes: List[int] = field(default_factory=list)
 
 
 @dataclass
 class DashboardAtleta:
-    id_atleta: str
+    id_atleta: int
     kpi_personales: Dict[TipoIndicador, float] = field(default_factory=dict)
     semaforos: Dict[TipoIndicador, RangoEvaluacion] = field(default_factory=dict)
     comparacion_mes_actual_vs_anterior: dict = field(default_factory=dict)
@@ -106,7 +106,7 @@ class DashboardAtleta:
 
 @dataclass
 class Reporte:
-    id: str
+    id: int
     tipo: TipoReporte
     formato: FormatoReporte
     titulo: str

@@ -9,7 +9,7 @@ from ..comun.errores import (
     EntidadNoEncontrada,
     ErrorValidacion,
 )
-from ..comun.ids import nuevo_id
+from ..comun.ids import nuevo_id_entero
 from ..usuarios.entidades import Rol
 from .entidades import (
     Asistencia,
@@ -29,7 +29,7 @@ class PlanificarEntrenamientoSemanal:
 
     def ejecutar(
         self,
-        id_atleta: str,
+        id_atleta: int,
         semana: int,
         anio: int,
         sesiones: List[SesionEntrenamiento],
@@ -56,7 +56,7 @@ class PlanificarEntrenamientoSemanal:
                     "El día de la semana de cada sesión es obligatorio."
                 )
         plan = PlanEntrenamientoSemanal(
-            id=generar_id_plan(id_atleta, semana, anio),
+            id=nuevo_id_entero(),
             id_atleta=id_atleta,
             semana=semana,
             anio=anio,
@@ -73,7 +73,7 @@ class ReprogramarSesion:
 
     def ejecutar(
         self,
-        id_sesion: str,
+        id_sesion: int,
         nuevo_dia: str,
         rol_usuario: Rol,
     ) -> SesionEntrenamiento:
@@ -99,7 +99,7 @@ class RegistrarEjecucionEntrenamiento:
 
     def ejecutar(
         self,
-        id_sesion: str,
+        id_sesion: int,
         horas_ejecutadas: float,
         fecha_registro: date,
         rol_usuario: Rol,
@@ -113,7 +113,7 @@ class RegistrarEjecucionEntrenamiento:
         if self.repositorio.buscar_sesion(id_sesion) is None:
             raise EntidadNoEncontrada("La sesión no existe.")
         ejecucion = EjecucionEntrenamiento(
-            id=nuevo_id("ejecucion"),
+            id=nuevo_id_entero(),
             id_sesion=id_sesion,
             horas_ejecutadas=horas_ejecutadas,
             fecha_registro=fecha_registro,
@@ -128,7 +128,7 @@ class AprobarHorasEjecutadas:
 
     repositorio: RepositorioEntrenamientos
 
-    def ejecutar(self, id_ejecucion: str, rol_usuario: Rol) -> EjecucionEntrenamiento:
+    def ejecutar(self, id_ejecucion: int, rol_usuario: Rol) -> EjecucionEntrenamiento:
         if rol_usuario != Rol.ENTRENADOR:
             raise ErrorValidacion(
                 "Solo el entrenador puede aprobar las horas ejecutadas."
@@ -143,7 +143,7 @@ class ConsultarCumplimientoSemanal:
     repositorio: RepositorioEntrenamientos
 
     def ejecutar(
-        self, id_atleta: str, semana: int, anio: int
+        self, id_atleta: int, semana: int, anio: int
     ) -> ResumenCumplimientoSemanal:
         plan = self.repositorio.listar_por_semana(id_atleta, semana, anio)
         if plan is None:
@@ -165,8 +165,8 @@ class RegistrarAsistencia:
 
     def ejecutar(
         self,
-        id_atleta: str,
-        id_sesion: str,
+        id_atleta: int,
+        id_sesion: int,
         fecha: date,
         estado: EstadoAsistencia,
         rol_usuario: Rol,
@@ -178,7 +178,7 @@ class RegistrarAsistencia:
         if estado not in EstadoAsistencia:
             raise ErrorValidacion("Estado de asistencia inválido.")
         asistencia = Asistencia(
-            id=nuevo_id("asistencia"),
+            id=nuevo_id_entero(),
             id_atleta=id_atleta,
             id_sesion=id_sesion,
             fecha=fecha,
@@ -193,7 +193,7 @@ class ConsultarHistorialEntrenamientos:
 
     repositorio: RepositorioEntrenamientos
 
-    def ejecutar(self, id_atleta: str) -> List[PlanEntrenamientoSemanal]:
+    def ejecutar(self, id_atleta: int) -> List[PlanEntrenamientoSemanal]:
         return self.repositorio.obtener_historial(id_atleta)
 
 

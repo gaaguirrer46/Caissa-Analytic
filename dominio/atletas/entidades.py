@@ -18,7 +18,7 @@ class TipoCategoria(str, Enum):
 
 @dataclass(frozen=True)
 class Categoria:
-    id: str
+    id: int
     nombre: str
     tipo: TipoCategoria
     rango: str
@@ -39,7 +39,7 @@ class Rating:
 class PerfilHistorico:
     """Snapshot inmutable del atleta por año y por torneo."""
 
-    id: str
+    id: int
     anio: int
     torneo: Optional[str]
     rating: Rating
@@ -48,7 +48,7 @@ class PerfilHistorico:
 
 @dataclass
 class Atleta:
-    id: str
+    id: int
     nombre: str
     fecha_nacimiento: date
     sexo: str
@@ -57,9 +57,9 @@ class Atleta:
     federacion: Optional[str] = None
     universidad: Optional[str] = None
     carrera: Optional[str] = None
-    categorias: List[str] = field(default_factory=list)
+    categorias: List[int] = field(default_factory=list)
     clubs: List[str] = field(default_factory=list)
-    entrenadores_asignados: List[str] = field(default_factory=list)
+    entrenadores_asignados: List[int] = field(default_factory=list)
     rating_actual: Rating = field(default_factory=Rating)
     historial: List[PerfilHistorico] = field(default_factory=list)
     activo: bool = True

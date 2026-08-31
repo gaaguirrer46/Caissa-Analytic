@@ -39,7 +39,7 @@ class ClasificarAperturaPrincipalSecundaria:
     repositorio: RepositorioAperturas
 
     def ejecutar(
-        self, id_apertura: str, clasificacion: ClasificacionUso
+        self, id_apertura: int, clasificacion: ClasificacionUso
     ) -> AperturaRepertorio:
         apertura = self.repositorio.buscar_por_id(id_apertura)
         if apertura is None:
@@ -56,7 +56,7 @@ class EvaluarEfectividadApertura:
 
     repositorio: RepositorioAperturas
 
-    def ejecutar(self, id_apertura: str) -> EfectividadApertura:
+    def ejecutar(self, id_apertura: int) -> EfectividadApertura:
         estadistica = self.repositorio.buscar_estadistica(id_apertura)
         if estadistica is None:
             raise EntidadNoEncontrada(
@@ -69,7 +69,7 @@ class EvaluarEfectividadApertura:
 class ConsultarEstadisticasGeneralesApertura:
     repositorio: RepositorioAperturas
 
-    def ejecutar(self, id_apertura: str) -> EstadisticaApertura:
+    def ejecutar(self, id_apertura: int) -> EstadisticaApertura:
         estadistica = self.repositorio.buscar_estadistica(id_apertura)
         if estadistica is None:
             raise EntidadNoEncontrada(
@@ -86,7 +86,7 @@ class ConsultarEstadisticasPorTorneo:
 
     def ejecutar(
         self,
-        id_apertura: str,
+        id_apertura: int,
         torneo: Optional[str] = None,
         anio: Optional[int] = None,
         control_tiempo: Optional[str] = None,

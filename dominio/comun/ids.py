@@ -1,10 +1,8 @@
-"""Generación centralizada de identificadores del dominio."""
-import uuid
+"""Generación centralizada de identificadores numéricos del dominio."""
+import random
+import time
 
 
-def nuevo_id(prefijo: str = "") -> str:
-    """Genera un id único, opcionalmente prefijado por entidad."""
-    id_unico = str(uuid.uuid4())
-    if prefijo:
-        return f"{prefijo}_{id_unico}"
-    return id_unico
+def nuevo_id_entero() -> int:
+    """Genera un ID entero único basado en marca de tiempo numérico."""
+    return int(time.time_ns() % 1_000_000_000) + random.randint(1, 999)
