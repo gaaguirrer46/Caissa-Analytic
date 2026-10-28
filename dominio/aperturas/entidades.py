@@ -1,7 +1,6 @@
-"""Módulo de Repertorio de Aperturas (RF-08).
+"""Módulo de Repertorio de Aperturas.
 
-Entidades del repertorio de aperturas del atleta y sus estadísticas.
-"""
+Entidades del repertorio de aperturas del atleta y sus estadísticas."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,11 +8,9 @@ from datetime import date
 from enum import Enum
 from typing import List, Optional
 
-
 class ColorApertura(str, Enum):
     BLANCAS = "BLANCAS"
     NEGRAS = "NEGRAS"
-
 
 class EstadoApertura(str, Enum):
     EN_ESTUDIO = "EN_ESTUDIO"
@@ -21,24 +18,20 @@ class EstadoApertura(str, Enum):
     EN_REVISION = "EN_REVISION"
     DESCARTADA = "DESCARTADA"
 
-
 class NivelDominio(str, Enum):
     INICIAL = "INICIAL"
     INTERMEDIO = "INTERMEDIO"
     AVANZADO = "AVANZADO"
 
-
 class ClasificacionUso(str, Enum):
     PRINCIPAL = "PRINCIPAL"
     SECUNDARIA = "SECUNDARIA"
-
 
 class EfectividadApertura(str, Enum):
     MUY_EFECTIVA = "MUY_EFECTIVA"
     EFECTIVA = "EFECTIVA"
     EN_DESARROLLO = "EN_DESARROLLO"
     REQUIERE_REVISION = "REQUIERE_REVISION"
-
 
 @dataclass
 class AperturaRepertorio:
@@ -53,7 +46,6 @@ class AperturaRepertorio:
     fuente_estudio: str = ""
     observaciones: str = ""
     clasificacion_uso: ClasificacionUso = ClasificacionUso.SECUNDARIA
-
 
 @dataclass
 class EstadisticaApertura:
@@ -85,7 +77,6 @@ class EstadisticaApertura:
         if self.partidas_jugadas >= 5:
             return EfectividadApertura.EN_DESARROLLO
         return EfectividadApertura.REQUIERE_REVISION
-
 
 @dataclass
 class EstadisticaAperturaPorTorneo:

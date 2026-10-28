@@ -11,7 +11,6 @@ from .entidades import (
     SesionEntrenamiento,
 )
 
-
 class RepositorioEntrenamientos(ABC):
     @abstractmethod
     def guardar_plan(self, plan: PlanEntrenamientoSemanal) -> PlanEntrenamientoSemanal:
@@ -34,8 +33,20 @@ class RepositorioEntrenamientos(ABC):
         """Aprueba la ejecución reportada."""
 
     @abstractmethod
+    def buscar_ejecucion(
+        self, id_ejecucion: int
+    ) -> Optional[EjecucionEntrenamiento]:
+        """Devuelve una ejecución por id, o None."""
+
+    @abstractmethod
     def buscar_sesion(self, id_sesion: int) -> Optional[SesionEntrenamiento]:
         """Devuelve una sesión por id, o None."""
+
+    @abstractmethod
+    def buscar_plan_de_sesion(
+        self, id_sesion: int
+    ) -> Optional[PlanEntrenamientoSemanal]:
+        """Devuelve el plan al que pertenece una sesión, o None."""
 
     @abstractmethod
     def listar_por_semana(self, id_atleta: int, semana: int, anio: int) -> Optional[PlanEntrenamientoSemanal]:
@@ -48,7 +59,6 @@ class RepositorioEntrenamientos(ABC):
     @abstractmethod
     def obtener_historial(self, id_atleta: int) -> List[PlanEntrenamientoSemanal]:
         """Devuelve las semanas anteriores conservando todos los estados."""
-
 
 class RepositorioAsistencia(ABC):
     @abstractmethod

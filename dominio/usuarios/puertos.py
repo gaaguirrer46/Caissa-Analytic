@@ -1,14 +1,19 @@
 """Puertos secundarios (driven) del módulo de Usuarios.
 
-Interfaces abstractas que los adaptadores de infraestructura implementarán.
-"""
+Interfaces abstractas que los adaptadores de infraestructura implementarán."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from .entidades import Permiso, Rol, Usuario
+from .entidades import PermisosPorRol, Rol, Usuario
 
+__all__ = [
+    "PermisosPorRol",
+    "ProveedorInformacionAutorizada",
+    "RepositorioUsuarios",
+    "ServicioHashContrasenas",
+]
 
 class RepositorioUsuarios(ABC):
     @abstractmethod
@@ -31,7 +36,6 @@ class RepositorioUsuarios(ABC):
     def existe(self, correo: str) -> bool:
         """Indica si ya existe un usuario con ese correo."""
 
-
 class ServicioHashContrasenas(ABC):
     @abstractmethod
     def hashear(self, contrasena_plana: str) -> str:
@@ -41,29 +45,13 @@ class ServicioHashContrasenas(ABC):
     def verificar(self, contrasena_plana: str, hash_almacenado: str) -> bool:
         """Verifica una contraseña contra su hash almacenado."""
 
+    @abstractmethod
+    def hash_dummy(self) -> str:
+        """Devuelve un hash ficticio para mitigar ataques de temporización (timing attacks)."""
 
-class PermisosPorRol:
-    """Catálogo de permisos concedidos a cada rol (regla del dominio)."""
+class ProveedorInformacionAutorizada(ABC):
+    """entrega únicamente las secciones habilitadas al invitado."""
 
-    _MATRIZ: dict[Rol, set[Permiso]] = {
-        Rol.ENTRENADOR: {
-            Permiso.GESTIONAR_USUARIOS,
-            Permiso.GESTIONAR_ATLETAS,
-            Permiso.GESTIONAR_OBJETIVOS,
-            Permiso.GESTIONAR_ENTRENAMIENTOS,
-            Permiso.GESTIONAR_PARTIDAS,
-            Permiso.GESTIONAR_EVALUACIONES,
-            Permiso.CONFIGURAR_SISTEMA,
-        },
-        Rol.ATLETA: {
-            Permiso.CONSULTAR_INFO_PROPIA,
-            Permiso.PROYECTAR_REGISTROS,
-        },
-        Rol.INVITADO: {
-            Permiso.VER_INFORMACION_AUTORIZADA,
-        },
-    }
-
-    @classmethod
-    def tiene_permiso(cls, rol: Rol, permiso: Permiso) -> bool:
-        return permiso in cls._MATRIZ.get(rol, set())
+    @abstractmethod
+    def obtener(self, seccion: str) -> object:
+        """Devuelve los datos de una sección autorizada."""

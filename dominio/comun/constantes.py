@@ -1,4 +1,4 @@
-"""Límites operativos del dominio (RF-01.8: máx. 40 atletas; RF-02.6: 1-3 entrenadores)."""
+"""Límites operativos del dominio."""
 
 MAXIMO_ATLETAS_POR_ENTRENADOR = 40
 MINIMO_ENTRENADORES_POR_ATLETA = 1

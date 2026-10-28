@@ -7,7 +7,6 @@ from typing import List, Optional
 
 from .entidades import EstadoObjetivo, ObjetivoSmart, TipoIndicadorAvance
 
-
 class RepositorioObjetivos(ABC):
     @abstractmethod
     def guardar(self, objetivo: ObjetivoSmart) -> ObjetivoSmart:
@@ -32,7 +31,6 @@ class RepositorioObjetivos(ABC):
     @abstractmethod
     def eliminar(self, id_objetivo: int) -> None:
         """Elimina un objetivo."""
-
 
 class ProveedorDatosAvance(ABC):
     """Interfaz para obtener datos actuales sin acoplarse a otros módulos."""

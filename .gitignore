@@ -6,3 +6,9 @@ Documentación base/Nuevo Documento de texto.txt
 # Caché de Python (bytecode compilado, se regenera automáticamente)
 __pycache__/
 *.pyc
+
+# Artefactos de pruebas
+reportes_*/
+tmpdir_*/
+tests/_salidas/
+

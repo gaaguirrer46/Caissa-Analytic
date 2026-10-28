@@ -1,4 +1,4 @@
-"""Validaciones compartidas de límites de atletas y entrenadores (RF-01.8, RF-02.6)."""
+"""Validaciones compartidas de límites de atletas y entrenadores."""
 from .constantes import (
     MAXIMO_ATLETAS_POR_ENTRENADOR,
     MAXIMO_ENTRENADORES_POR_ATLETA,
@@ -6,14 +6,15 @@ from .constantes import (
 )
 from .errores import ErrorValidacion
 
-
-def validar_capacidad_entrenador(cantidad_actual: int) -> None:
-    """Un entrenador puede tener como máximo 40 atletas asignados."""
-    if cantidad_actual >= MAXIMO_ATLETAS_POR_ENTRENADOR:
+def validar_capacidad_entrenador(
+    cantidad_actual: int,
+    maximo: int = MAXIMO_ATLETAS_POR_ENTRENADOR,
+) -> None:
+    """Un entrenador no puede superar el máximo configurado de atletas."""
+    if cantidad_actual >= maximo:
         raise ErrorValidacion(
-            "El entrenador ya alcanzó el máximo de 40 atletas asignados."
+            f"El entrenador ya alcanzó el máximo de {maximo} atletas asignados."
         )
-
 
 def validar_entrenadores_por_atleta(cantidad: int) -> None:
     """Un atleta debe tener entre 1 y 3 entrenadores asignados."""

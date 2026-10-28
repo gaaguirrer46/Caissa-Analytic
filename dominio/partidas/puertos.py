@@ -10,7 +10,6 @@ from .entidades import (
     Partida,
 )
 
-
 class RepositorioPartidas(ABC):
     @abstractmethod
     def guardar(self, partida: Partida) -> Partida:
@@ -34,7 +33,6 @@ class RepositorioPartidas(ABC):
     ) -> List[Partida]:
         """Devuelve las partidas de un atleta en un periodo."""
 
-
 class RepositorioAnalisisTecnico(ABC):
     @abstractmethod
     def guardar_resumen(self, analisis: AnalisisTecnico) -> AnalisisTecnico:
@@ -48,12 +46,11 @@ class RepositorioAnalisisTecnico(ABC):
     def listar_por_atleta(self, id_atleta: int) -> List[AnalisisTecnico]:
         """Devuelve los análisis de las partidas de un atleta."""
 
-
 class ProveedorPGN(ABC):
     """Interfaz para importar partidas desde archivos PGN.
 
-    El dominio no parsea PGN; solicita la partida ya estructurada.
-    """
+ El dominio no parsea PGN; solicita la partida ya estructurada.
+ """
 
     @abstractmethod
     def parsear(self, contenido_pgn: str) -> List[Partida]:

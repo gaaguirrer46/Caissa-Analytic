@@ -6,7 +6,6 @@ from typing import List, Optional
 
 from .entidades import EvaluacionAtleta, PeriodoEvaluacion
 
-
 class RepositorioEvaluaciones(ABC):
     @abstractmethod
     def guardar(self, evaluacion: EvaluacionAtleta) -> EvaluacionAtleta:

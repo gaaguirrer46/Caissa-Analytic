@@ -1,7 +1,6 @@
-"""Módulo de Atletas (RF-02).
+"""Módulo de Atletas.
 
-Entidades del expediente deportivo integral del ajedrecista.
-"""
+Entidades del expediente deportivo integral del ajedrecista."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,12 +8,15 @@ from datetime import date
 from enum import Enum
 from typing import List, Optional
 
+from ..comun.errores import ErrorValidacion
+from ..entrenamientos.entidades import PlanEntrenamientoSemanal, SesionEntrenamiento
+from ..objetivos.entidades import ObjetivoSmart
+from ..partidas.entidades import EstadisticasFaseJuego, Partida
 
 class TipoCategoria(str, Enum):
     EDAD = "EDAD"
     NIVEL = "NIVEL"
     ELO = "ELO"
-
 
 @dataclass(frozen=True)
 class Categoria:
@@ -23,7 +25,6 @@ class Categoria:
     tipo: TipoCategoria
     rango: str
     editable_por_admin: bool = True
-
 
 @dataclass(frozen=True)
 class Rating:
@@ -34,17 +35,20 @@ class Rating:
     lichess: Optional[int] = None
     fecha_actualizacion: Optional[date] = None
 
-
 @dataclass(frozen=True)
 class PerfilHistorico:
-    """Snapshot inmutable del atleta por año y por torneo."""
+    """Snapshot inmutable del atleta por año y por torneo.
+
+ ``id_atleta`` es obligatorio: es la clave que asocia el snapshot con su
+ expediente (antes el adaptador confundía ``id`` con ``id_atleta``).
+ """
 
     id: int
+    id_atleta: int
     anio: int
     torneo: Optional[str]
     rating: Rating
     observaciones: str = ""
-
 
 @dataclass
 class Atleta:
@@ -56,6 +60,7 @@ class Atleta:
     fotografia_opcional: Optional[str] = None
     federacion: Optional[str] = None
     universidad: Optional[str] = None
+    institucion: Optional[str] = None
     carrera: Optional[str] = None
     categorias: List[int] = field(default_factory=list)
     clubs: List[str] = field(default_factory=list)
@@ -65,8 +70,15 @@ class Atleta:
     activo: bool = True
 
     def edad(self, hoy: Optional[date] = None) -> int:
-        """Calcula la edad automáticamente a partir de la fecha de nacimiento."""
+        """Calcula la edad automáticamente a partir de la fecha de nacimiento.
+
+la edad es una propiedad derivada, nunca almacenada. La
+ guarda defensiva asegura que una entidad construida
+ a mano con fecha futura no devuelva una edad negativa silenciosa.
+ """
         hoy = hoy or date.today()
+        if hoy < self.fecha_nacimiento:
+            raise ErrorValidacion("La fecha de nacimiento no puede ser futura.")
         anios = hoy.year - self.fecha_nacimiento.year
         if (hoy.month, hoy.day) < (
             self.fecha_nacimiento.month,
@@ -74,3 +86,15 @@ class Atleta:
         ):
             anios -= 1
         return anios
+
+@dataclass(frozen=True)
+class MiInformacion:
+    """vista consolidada de la información propia del atleta."""
+
+    atleta: Atleta
+    calendario: List[SesionEntrenamiento]
+    entrenamientos: List[PlanEntrenamientoSemanal]
+    objetivos: List[ObjetivoSmart]
+    estadisticas: EstadisticasFaseJuego
+    partidas: List[Partida]
+    reportes: List[str]

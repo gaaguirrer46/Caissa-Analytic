@@ -1,13 +1,23 @@
-"""Casos de uso (puertos primarios / driving) del módulo de Patrones de Error."""
+"""Casos de uso (puertos primarios / driving) del módulo de Patrones de Error.
+
+Limitación de modelo: el esquema oficial no almacena información por
+fase del juego ni ventaja máxima por partida. Los patrones de finales
+se cubren con la clasificación persistida: el patrón
+``FINALES``-"partidas botadas" refleja la baja conversión de posiciones
+ventajosas. Los finales técnicos (peones/torres) siguen sin datos por fase
+y no se inventan."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
 from typing import Dict, List, Optional
 
+from ..comun.acceso import Solicitante, exigir_entrenador
 from ..comun.errores import ErrorValidacion
+from ..comun.validaciones import convertir_enum, exigir_entero, exigir_fecha
 from ..partidas.entidades import (
     AnalisisTecnico,
+    ClasificacionPartida,
     ColorPartida,
     Partida,
 )
@@ -22,37 +32,57 @@ from .entidades import (
 )
 from .puertos import ProveedorDatosPartidas
 
-# Rendimiento de puntos por debajo del cual un grupo se considera patrón débil.
 UMBRAL_RENDIMIENTO_DEBIL = 40.0
 
+MINIMO_EVENTOS_DISCIPLINA = 2
 
 @dataclass
 class DetectarPatronesError:
-    """RF-06: detecta patrones recurrentes sin generar sugerencias (RF-06.10)."""
+    """detecta patrones recurrentes sin generar sugerencias."""
 
     proveedor_datos: ProveedorDatosPartidas
 
     def ejecutar(
         self,
         id_atleta: int,
-        nivel: NivelMinimoPartidas = NivelMinimoPartidas.BASICO,
+        nivel: NivelMinimoPartidas | str = NivelMinimoPartidas.BASICO,
         periodo_inicio: Optional[date] = None,
         periodo_fin: Optional[date] = None,
+        *,
+        solicitante: Solicitante,
     ) -> AnalisisPatrones:
+        exigir_entrenador(solicitante, "detectar patrones de un atleta")
+        exigir_entero(id_atleta, "id_atleta", minimo=1)
+        nivel_enum = convertir_enum(NivelMinimoPartidas, nivel, "nivel")
+        if (periodo_inicio is None) != (periodo_fin is None):
+            raise ErrorValidacion(
+                "Debe indicar ambos extremos del periodo o ninguno."
+            )
+        if periodo_inicio is not None and periodo_fin is not None:
+            exigir_fecha(periodo_inicio, "periodo_inicio")
+            exigir_fecha(periodo_fin, "periodo_fin")
+            if periodo_fin < periodo_inicio:
+                raise ErrorValidacion(
+                    "El fin del periodo no puede ser anterior a su inicio."
+                )
+
         datos = self.proveedor_datos.partidas_con_analisis(
             id_atleta, periodo_inicio, periodo_fin
         )
-        minimo = _minimo_para_nivel(nivel)
+        minimo = _minimo_para_nivel(nivel_enum)
         total = len(datos)
         if total < minimo:
             raise ErrorValidacion(
                 f"Se requieren al menos {minimo} partidas para mostrar "
-                f"tendencias de nivel {nivel.value} (actual: {total})."
+                f"tendencias de nivel {nivel_enum.value} (actual: {total})."
             )
 
         conteos = self.proveedor_datos.conteos_disciplina(
             id_atleta, periodo_inicio, periodo_fin
         )
+        if not isinstance(conteos, dict):
+            conteos = {}
+
         patrones: List[PatronDetectado] = []
         patrones.extend(_patrones_tacticos(datos, total))
         patrones.extend(_patrones_estrategicos(datos, total))
@@ -65,23 +95,37 @@ class DetectarPatronesError:
         patrones.extend(_patrones_rivales(datos))
         patrones.extend(_patrones_control_tiempo(datos))
 
+        for patron in patrones:
+            patron.periodo_inicio = periodo_inicio
+            patron.periodo_fin = periodo_fin
+
         return AnalisisPatrones(
             id_atleta=id_atleta,
             patrones=patrones,
             minimo_requerido=minimo,
         )
 
-
 def _minimo_para_nivel(nivel: NivelMinimoPartidas) -> int:
     return MINIMOS_PARTIDAS.get(nivel, MINIMO_PARTIDAS_PATRON)
 
-
 def _es_patron(frecuencia: int, total: int) -> bool:
-    """Regla RF-06.8: se repite en >=5 partidas o en >40% de las analizadas."""
+    """Regla: se repite en >=5 partidas o en >40% de las analizadas."""
+    if total <= 0:
+        return False
     return frecuencia >= MINIMO_PARTIDAS_PATRON or (
         (frecuencia / total * 100) > PORCENTAJE_MINIMO_PATRON
     )
 
+def _es_patron_proporcional(
+    frecuencia: int,
+    universo: int,
+    *,
+    minimo_eventos: int = MINIMO_EVENTOS_DISCIPLINA,
+) -> bool:
+    """Regla proporcional para eventos que no son partidas (semanas, sesiones)."""
+    if universo <= 0 or frecuencia < minimo_eventos:
+        return False
+    return (frecuencia / universo * 100) > PORCENTAJE_MINIMO_PATRON
 
 def _registrar(
     patrones: List[PatronDetectado],
@@ -100,18 +144,16 @@ def _registrar(
             )
         )
 
-
 def _porcentaje_puntos(partidas: List[Partida]) -> float:
     """Porcentaje de puntos obtenidos por el atleta sobre el total posible."""
     if not partidas:
         return 0.0
     return sum(p.puntos_obtenidos() for p in partidas) / len(partidas) * 100
 
-
 def _patrones_tacticos(
     datos: List[tuple[Partida, AnalisisTecnico]], total: int
 ) -> List[PatronDetectado]:
-    """RF-06.1: blunders recurrentes, errores tácticos frecuentes."""
+    """blunders recurrentes y errores tácticos frecuentes."""
     patrones: List[PatronDetectado] = []
     blunders = sum(1 for _, a in datos if a.blunders >= 1)
     _registrar(
@@ -131,11 +173,10 @@ def _patrones_tacticos(
     )
     return patrones
 
-
 def _patrones_estrategicos(
     datos: List[tuple[Partida, AnalisisTecnico]], total: int
 ) -> List[PatronDetectado]:
-    """RF-06.2: imprecisiones estratégicas frecuentes."""
+    """imprecisiones estratégicas frecuentes."""
     patrones: List[PatronDetectado] = []
     imprecisiones = sum(1 for _, a in datos if a.imprecisiones >= 3)
     _registrar(
@@ -147,11 +188,10 @@ def _patrones_estrategicos(
     )
     return patrones
 
-
 def _patrones_apertura(
     datos: List[tuple[Partida, AnalisisTecnico]], total: int
 ) -> List[PatronDetectado]:
-    """RF-06.3: salidas tempranas de la teoría."""
+    """salidas tempranas de la teoría."""
     patrones: List[PatronDetectado] = []
     malas_salidas = sum(1 for _, a in datos if a.libro == 0)
     _registrar(
@@ -163,27 +203,37 @@ def _patrones_apertura(
     )
     return patrones
 
-
 def _patrones_finales(
     datos: List[tuple[Partida, AnalisisTecnico]], total: int
 ) -> List[PatronDetectado]:
-    """RF-06.4: pérdidas por tiempo como patrón de finales."""
+    """baja conversión detectada vía clasificación persistida.
+
+ Una partida botada (ventaja > +3, blunder y derrota/tablas) que ya fue
+ clasificada al registrar el análisis técnico es evidencia real de un error
+ de conversión; se declara patrón con la regla . Las partidas sin
+ clasificación contribuyen con cero: no se inventan datos.
+ """
     patrones: List[PatronDetectado] = []
-    perdidas_tiempo = sum(1 for _, a in datos if a.perdidas_por_tiempo >= 1)
+    botadas = sum(
+        1 for p, _ in datos if p.clasificacion == ClasificacionPartida.PARTIDA_BOTADA
+    )
     _registrar(
         patrones,
         TipoPatron.FINALES,
-        "Pérdidas por tiempo recurrentes (>=1 por partida).",
-        perdidas_tiempo,
+        "Partidas botadas: ventaja alcanzada no convertida (baja conversión).",
+        botadas,
         total,
     )
     return patrones
 
-
 def _patrones_gestion_tiempo(
     datos: List[tuple[Partida, AnalisisTecnico]], total: int
 ) -> List[PatronDetectado]:
-    """RF-06.5: apuros recurrentes de tiempo."""
+    """apuros recurrentes y pérdidas de partidas por tiempo.
+
+ Antes las pérdidas por tiempo se clasificaban erróneamente como patrón de
+ finales; pertenecen a la gestión del tiempo.
+ """
     patrones: List[PatronDetectado] = []
     apuros = sum(
         1
@@ -193,17 +243,24 @@ def _patrones_gestion_tiempo(
     _registrar(
         patrones,
         TipoPatron.GESTION_TIEMPO,
-        "Apuros recurrentes (tiempo promedio por jugada < 20s).",
+        "Apuros recurrentes (tiempo promedio por jugada < 20 s).",
         apuros,
+        total,
+    )
+    perdidas_tiempo = sum(1 for _, a in datos if a.perdidas_por_tiempo >= 1)
+    _registrar(
+        patrones,
+        TipoPatron.GESTION_TIEMPO,
+        "Pérdidas de partidas por tiempo.",
+        perdidas_tiempo,
         total,
     )
     return patrones
 
-
 def _patrones_competitivos(
     datos: List[tuple[Partida, AnalisisTecnico]], total: int
 ) -> List[PatronDetectado]:
-    """RF-06.6: derrotas asociadas a blunders."""
+    """derrotas asociadas a blunders."""
     patrones: List[PatronDetectado] = []
     derrotas_con_blunder = sum(
         1
@@ -219,47 +276,59 @@ def _patrones_competitivos(
     )
     return patrones
 
-
 def _patrones_disciplina(
     conteos: Dict[str, int], total_partidas: int
 ) -> List[PatronDetectado]:
-    """RF-06.7: incumplimiento del plan, baja asistencia y baja frecuencia
-    de análisis de partidas."""
+    """incumplimiento del plan, baja asistencia y baja frecuencia de análisis.
+
+ Los denominadores deben ser semanas y sesiones evaluadas, no partidas; antes
+ se dividía por ``total_partidas`` produciendo porcentajes sin sentido.
+ """
     patrones: List[PatronDetectado] = []
-    universo = total_partidas + conteos.get("partidas_sin_analisis", 0)
 
     sin_analisis = conteos.get("partidas_sin_analisis", 0)
-    if universo > 0 and _es_patron(sin_analisis, universo):
+    universo_analisis = conteos.get("partidas_totales", 0) or (
+        total_partidas + sin_analisis
+    )
+    if _es_patron_proporcional(sin_analisis, universo_analisis):
         patrones.append(
             PatronDetectado(
                 tipo=TipoPatron.DISCIPLINA,
                 descripcion="Baja frecuencia de análisis de partidas.",
                 frecuencia_absoluta=sin_analisis,
-                frecuencia_relativa=sin_analisis / universo * 100,
+                frecuencia_relativa=sin_analisis / universo_analisis * 100,
             )
         )
 
-    for clave, descripcion in (
-        ("incumplimientos_semanales", "Incumplimiento recurrente del plan semanal."),
-        ("inasistencias", "Baja asistencia a los entrenamientos."),
-    ):
-        frecuencia = conteos.get(clave, 0)
-        if frecuencia >= MINIMO_PARTIDAS_PATRON:
-            patrones.append(
-                PatronDetectado(
-                    tipo=TipoPatron.DISCIPLINA,
-                    descripcion=descripcion,
-                    frecuencia_absoluta=frecuencia,
-                    frecuencia_relativa=frecuencia / total_partidas * 100,
-                )
+    incumplimientos = conteos.get("incumplimientos_semanales", 0)
+    semanas = conteos.get("semanas_evaluadas", 0)
+    if _es_patron_proporcional(incumplimientos, semanas):
+        patrones.append(
+            PatronDetectado(
+                tipo=TipoPatron.DISCIPLINA,
+                descripcion="Incumplimiento recurrente del plan semanal.",
+                frecuencia_absoluta=incumplimientos,
+                frecuencia_relativa=incumplimientos / semanas * 100,
             )
-    return patrones
+        )
 
+    inasistencias = conteos.get("inasistencias", 0)
+    sesiones = conteos.get("sesiones_evaluadas", 0)
+    if _es_patron_proporcional(inasistencias, sesiones):
+        patrones.append(
+            PatronDetectado(
+                tipo=TipoPatron.DISCIPLINA,
+                descripcion="Baja asistencia a los entrenamientos.",
+                frecuencia_absoluta=inasistencias,
+                frecuencia_relativa=inasistencias / sesiones * 100,
+            )
+        )
+    return patrones
 
 def _patrones_rendimiento_por_color(
     datos: List[tuple[Partida, AnalisisTecnico]],
 ) -> List[PatronDetectado]:
-    """RF-06.6: rendimiento por color de piezas (requiere >=20 partidas)."""
+    """rendimiento por color de piezas (requiere >=20 partidas)."""
     patrones: List[PatronDetectado] = []
     minimo = MINIMOS_PARTIDAS[NivelMinimoPartidas.COLOR]
     for color in ColorPartida:
@@ -280,11 +349,10 @@ def _patrones_rendimiento_por_color(
                 )
     return patrones
 
-
 def _patrones_rivales(
     datos: List[tuple[Partida, AnalisisTecnico]],
 ) -> List[PatronDetectado]:
-    """RF-06.6: rendimiento contra rivales de mayor rating (>=20 partidas)."""
+    """rendimiento contra rivales de mayor rating (>=20 partidas)."""
     patrones: List[PatronDetectado] = []
     minimo = MINIMOS_PARTIDAS[NivelMinimoPartidas.RIVAL]
     contra_superiores = [
@@ -308,11 +376,10 @@ def _patrones_rivales(
             )
     return patrones
 
-
 def _patrones_control_tiempo(
     datos: List[tuple[Partida, AnalisisTecnico]],
 ) -> List[PatronDetectado]:
-    """RF-06.6: desempeño por control de tiempo (agrupación avanzada, >=20)."""
+    """desempeño por control de tiempo (agrupación avanzada, >=20)."""
     patrones: List[PatronDetectado] = []
     minimo = MINIMOS_PARTIDAS[NivelMinimoPartidas.COLOR]
     por_control: Dict[str, List[Partida]] = {}
@@ -336,14 +403,18 @@ def _patrones_control_tiempo(
                 )
     return patrones
 
-
 def _rating_atleta(partida: Partida) -> int:
     if partida.color_atleta == ColorPartida.NEGRAS:
         return partida.rating_negras
     return partida.rating_blancas
 
-
 def _rating_rival(partida: Partida) -> int:
     if partida.color_atleta == ColorPartida.NEGRAS:
         return partida.rating_blancas
     return partida.rating_negras
+
+__all__ = [
+    "DetectarPatronesError",
+    "MINIMO_EVENTOS_DISCIPLINA",
+    "UMBRAL_RENDIMIENTO_DEBIL",
+]

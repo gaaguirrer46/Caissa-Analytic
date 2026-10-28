@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
+from ..partidas.entidades import AnalisisTecnico, Partida
 from .entidades import (
     AperturaRepertorio,
     ColorApertura,
@@ -11,7 +12,6 @@ from .entidades import (
     EstadisticaApertura,
     EstadisticaAperturaPorTorneo,
 )
-
 
 class RepositorioAperturas(ABC):
     @abstractmethod
@@ -23,6 +23,10 @@ class RepositorioAperturas(ABC):
         self, id_apertura: int, estado: str
     ) -> AperturaRepertorio:
         """Actualiza el estado de una apertura."""
+
+    @abstractmethod
+    def listar_por_atleta(self, id_atleta: int) -> List[AperturaRepertorio]:
+        """Devuelve el repertorio completo del atleta."""
 
     @abstractmethod
     def buscar_por_atleta_y_color(
@@ -64,10 +68,25 @@ class RepositorioAperturas(ABC):
     ) -> List[EstadisticaAperturaPorTorneo]:
         """Devuelve las estadísticas por torneo de una apertura."""
 
-
 class ProveedorEvaluacionMotor(ABC):
     """Interfaz para obtener evaluación numérica de posiciones (ej: Stockfish)."""
 
     @abstractmethod
     def evaluar(self, posicion_fen: str) -> float:
         """Devuelve la evaluación centípoda de una posición."""
+
+class ProveedorDatosApertura(ABC):
+    """Consulta cruzada: partidas del atleta jugadas con una apertura concreta.
+
+ El dominio de aperturas no conoce el repositorio de partidas; este puerto
+ permite calcular las estadísticas sin acoplarse.
+ """
+
+    @abstractmethod
+    def partidas_con_apertura(
+        self,
+        id_atleta: int,
+        codigo_eco: str,
+        color: Optional[ColorApertura] = None,
+    ) -> List[tuple[Partida, Optional[AnalisisTecnico]]]:
+        """Devuelve pares (partida, análisis) de la apertura indicada."""

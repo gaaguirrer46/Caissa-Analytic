@@ -1,14 +1,12 @@
-"""Módulo de Entrenamientos (RF-04).
+"""Módulo de Entrenamientos.
 
-Entidades para planificar semanalmente, registrar ejecución y controlar asistencia.
-"""
+Entidades para planificar semanalmente, registrar ejecución y controlar asistencia."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
 from typing import List, Optional
-
 
 class TipoEntrenamiento(str, Enum):
     APERTURAS = "APERTURAS"
@@ -24,19 +22,16 @@ class TipoEntrenamiento(str, Enum):
     PSICOLOGICA_DEPORTIVA = "PSICOLOGICA_DEPORTIVA"
     PREPARACION_COMPETITIVA = "PREPARACION_COMPETITIVA"
 
-
 class EstadoSesion(str, Enum):
     PROGRAMADA = "PROGRAMADA"
     REPROGRAMADA = "REPROGRAMADA"
     CANCELADA = "CANCELADA"
     EJECUTADA = "EJECUTADA"
 
-
 class EstadoAsistencia(str, Enum):
     PRESENTE = "PRESENTE"
     AUSENTE = "AUSENTE"
     JUSTIFICADO = "JUSTIFICADO"
-
 
 @dataclass
 class SesionEntrenamiento:
@@ -48,7 +43,6 @@ class SesionEntrenamiento:
     observaciones: str = ""
     horas_ejecutadas: Optional[float] = None
     ejecucion_aprobada: bool = False
-
 
 @dataclass
 class PlanEntrenamientoSemanal:
@@ -77,7 +71,6 @@ class PlanEntrenamientoSemanal:
             return 0.0
         return (self.total_horas_ejecutadas_aprobadas / total) * 100
 
-
 @dataclass
 class EjecucionEntrenamiento:
     id: int
@@ -87,7 +80,6 @@ class EjecucionEntrenamiento:
     registrado_por_atleta: bool = True
     aprobado_por_entrenador: bool = False
 
-
 @dataclass
 class Asistencia:
     id: int
@@ -96,10 +88,9 @@ class Asistencia:
     fecha: date
     estado: EstadoAsistencia
 
-
 @dataclass(frozen=True)
 class ResumenCumplimientoSemanal:
-    """Contraste planificado vs ejecutado de una semana (RF-04.4)."""
+    """Contraste planificado vs ejecutado de una semana."""
 
     id_atleta: int
     semana: int

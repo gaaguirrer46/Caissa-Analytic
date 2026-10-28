@@ -1,7 +1,6 @@
-"""Módulo de Auditoría y Control de Cambios (RF-12).
+"""Módulo de Auditoría y Control de Cambios.
 
-Entidades para garantizar trazabilidad de todos los cambios críticos.
-"""
+Entidades para garantizar trazabilidad de todos los cambios críticos."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,12 +8,10 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
-
 class TipoOperacion(str, Enum):
     CREAR = "CREAR"
     MODIFICAR = "MODIFICAR"
     ELIMINAR = "ELIMINAR"
-
 
 @dataclass(frozen=True)
 class RegistroAuditoria:

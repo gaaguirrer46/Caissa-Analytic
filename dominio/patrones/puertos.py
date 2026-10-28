@@ -7,7 +7,6 @@ from typing import Dict, List, Optional
 
 from ..partidas.entidades import AnalisisTecnico, Partida
 
-
 class ProveedorDatosPartidas(ABC):
     """Interfaz para obtener partidas y análisis sin acoplarse a otros módulos."""
 
@@ -27,10 +26,10 @@ class ProveedorDatosPartidas(ABC):
         periodo_inicio: Optional[date] = None,
         periodo_fin: Optional[date] = None,
     ) -> Dict[str, int]:
-        """Devuelve conteos de disciplina (RF-06.7).
+        """Devuelve conteos de disciplina.
 
-        Claves esperadas:
-        - incumplimientos_semanales: semanas con cumplimiento < 100%%
-        - inasistencias: sesiones con asistencia AUSENTE/JUSTIFICADO
-        - partidas_sin_analisis: partidas del periodo sin análisis técnico
-        """
+ Claves esperadas:
+ - incumplimientos_semanales: semanas con cumplimiento < 100%%
+ - inasistencias: sesiones con asistencia AUSENTE/JUSTIFICADO
+ - partidas_sin_analisis: partidas del periodo sin análisis técnico
+ """

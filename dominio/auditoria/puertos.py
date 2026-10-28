@@ -7,7 +7,6 @@ from typing import List
 
 from .entidades import RegistroAuditoria
 
-
 class RepositorioAuditoria(ABC):
     @abstractmethod
     def guardar(self, registro: RegistroAuditoria) -> RegistroAuditoria:
