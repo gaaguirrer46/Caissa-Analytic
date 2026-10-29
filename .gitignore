@@ -3,12 +3,45 @@ Documentación base/
 Documentación base/Desarrollo de Se Caissa Analytics.md
 Documentación base/Nuevo Documento de texto.txt
 
-# Caché de Python (bytecode compilado, se regenera automáticamente)
+# Caché y artefactos de Python (Backend)
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/*/*/*/__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+venv/
+.venv/
+env/
 
-# Artefactos de pruebas
+# Artefactos de pruebas de backend
 reportes_*/
 tmpdir_*/
 tests/_salidas/
 
+# Dependencias y compilación de Node / Next.js (Frontend)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Entorno y Sistema Operativo
+.DS_Store
+Thumbs.db
