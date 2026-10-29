@@ -13,6 +13,9 @@ import {
   UserCheck,
   Shield,
   Filter,
+  Sparkles,
+  ArrowUpRight,
+  Flame,
 } from "lucide-react";
 import { ATLETAS_MOCK } from "@/services/atletas.service";
 import { calcularEdad } from "@/types/atleta.types";
@@ -45,44 +48,44 @@ export default function AtletasPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-2">
-            <Users className="w-3.5 h-3.5" /> Expediente Deportivo Integral
+    <div className="min-h-screen bg-[#070b12] text-slate-100 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8 font-sans">
+      {/* Header Banner */}
+      <div className="p-6 rounded-2xl border border-slate-800/90 bg-gradient-to-r from-[#0d1424] via-[#0a101d] to-[#070b12] flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xl">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono font-medium">
+            <Users className="w-3.5 h-3.5" /> EXPEDIENTE DEPORTIVO FEDERATIVO
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">
-            Catálogo de Atletas
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Catálogo & Expediente de Atletas
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Gestión de perfiles, categorías federativas y seguimiento de rating FIDE y plataformas digitales.
+          <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+            Seguimiento de perfiles competitivos, categorías de edad/nivel, ratings oficiales FIDE (Clásicas, Rápidas, Blitz) y vinculaciones universitarias.
           </p>
         </div>
 
-        {/* Global KPI Summary */}
+        {/* Global Stats */}
         <div className="flex items-center gap-3">
-          <div className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
-            <span className="text-[11px] text-slate-400 block font-medium">Atletas Registrados</span>
-            <span className="text-lg font-bold text-white">{ATLETAS_MOCK.length}</span>
+          <div className="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+            <span className="text-[10px] text-slate-400 font-mono uppercase block">Plantel Oficial</span>
+            <span className="text-xl font-bold font-mono text-white">{ATLETAS_MOCK.length} Atletas</span>
           </div>
-          <div className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
-            <span className="text-[11px] text-slate-400 block font-medium">ELO Promedio</span>
-            <span className="text-lg font-bold text-emerald-400">{promedioElo}</span>
+          <div className="px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
+            <span className="text-[10px] text-slate-400 font-mono uppercase block">ELO Promedio</span>
+            <span className="text-xl font-bold font-mono text-emerald-400">{promedioElo}</span>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#0d1424]/80 p-4 rounded-2xl border border-slate-800/80">
         <div className="relative sm:col-span-2">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
           <input
             type="text"
-            placeholder="Buscar por nombre, club, universidad..."
+            placeholder="Buscar por nombre de atleta, club, carrera o universidad..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+            className="w-full bg-[#070b12] border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
           />
         </div>
 
@@ -90,7 +93,7 @@ export default function AtletasPage() {
           <select
             value={filtroSexo}
             onChange={(e) => setFiltroSexo(e.target.value)}
-            className="w-1/2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+            className="w-1/2 bg-[#070b12] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
           >
             <option value="TODOS">Todos los géneros</option>
             <option value="M">Masculino</option>
@@ -100,10 +103,10 @@ export default function AtletasPage() {
           <select
             value={orden}
             onChange={(e) => setOrden(e.target.value)}
-            className="w-1/2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+            className="w-1/2 bg-[#070b12] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
           >
-            <option value="RATING_DESC">Mayor Rating</option>
-            <option value="RATING_ASC">Menor Rating</option>
+            <option value="RATING_DESC">Mayor Rating ELO</option>
+            <option value="RATING_ASC">Menor Rating ELO</option>
             <option value="NOMBRE">Nombre (A-Z)</option>
           </select>
         </div>
@@ -117,13 +120,13 @@ export default function AtletasPage() {
             <Link
               key={atleta.id}
               href={`/atletas/${atleta.id}`}
-              className="group p-6 rounded-2xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900 hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
+              className="group p-6 rounded-2xl border border-slate-800/80 bg-[#0d1424]/70 hover:bg-[#0f1729] hover:border-slate-700 transition-all duration-200 flex flex-col justify-between shadow-lg"
             >
               <div className="space-y-4">
                 {/* Header card */}
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center font-bold text-slate-200 text-lg group-hover:border-emerald-500/50 transition-colors">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center font-bold text-slate-100 text-base group-hover:border-emerald-500/50 transition-colors">
                       {atleta.nombre
                         .split(" ")
                         .map((n) => n[0])
@@ -135,47 +138,47 @@ export default function AtletasPage() {
                         {atleta.nombre}
                       </h3>
                       <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-                        <span>{edad} años ({atleta.sexo === "M" ? "Masculino" : "Femenino"})</span>
+                        <span>{edad} años ({atleta.sexo === "M" ? "Masc" : "Fem"})</span>
                         <span>•</span>
                         <span className="flex items-center gap-1 text-emerald-400 font-medium">
-                          <UserCheck className="w-3 h-3" /> Activo
+                          <UserCheck className="w-3 h-3" /> Federado
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+                  <ArrowUpRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </div>
 
-                {/* Rating Badges */}
-                <div className="grid grid-cols-3 gap-2 pt-2">
-                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                {/* Rating Badges (TradingView Style) */}
+                <div className="grid grid-cols-3 gap-2 pt-1 font-mono">
+                  <div className="p-2.5 rounded-xl bg-[#070b12] border border-slate-800 text-center">
                     <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
-                      Clásicas
+                      FIDE Clásico
                     </span>
-                    <span className="text-sm font-bold text-emerald-400">
+                    <span className="text-base font-bold text-emerald-400">
                       {atleta.rating_actual.clasicas || "—"}
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                  <div className="p-2.5 rounded-xl bg-[#070b12] border border-slate-800 text-center">
                     <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
                       Rápidas
                     </span>
-                    <span className="text-sm font-bold text-blue-400">
+                    <span className="text-base font-bold text-blue-400">
                       {atleta.rating_actual.rapidas || "—"}
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                  <div className="p-2.5 rounded-xl bg-[#070b12] border border-slate-800 text-center">
                     <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
                       Blitz
                     </span>
-                    <span className="text-sm font-bold text-amber-400">
+                    <span className="text-base font-bold text-amber-400">
                       {atleta.rating_actual.blitz || "—"}
                     </span>
                   </div>
                 </div>
 
-                {/* Academic & Club Info */}
+                {/* University and Clubs */}
                 <div className="space-y-1.5 text-xs text-slate-400 pt-1">
                   {atleta.universidad && (
                     <div className="flex items-center gap-2">
@@ -195,21 +198,14 @@ export default function AtletasPage() {
               {/* Card Footer */}
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
                 <span>Historial: {atleta.historial.length} torneos registrados</span>
-                <span className="text-emerald-400 group-hover:underline">Ver ficha técnica →</span>
+                <span className="text-emerald-400 font-semibold group-hover:underline">
+                  Abrir expediente completo →
+                </span>
               </div>
             </Link>
           );
         })}
       </div>
-
-      {atletasFiltrados.length === 0 && (
-        <div className="text-center py-16 border border-slate-800 rounded-2xl bg-slate-900/30">
-          <Users className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-white">No se encontraron atletas</h3>
-          <p className="text-sm text-slate-400 mt-1">Intenta con otros términos de búsqueda o filtros.</p>
-        </div>
-      )}
     </div>
   );
 }
-
