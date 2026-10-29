@@ -48,3 +48,4 @@ backend/
 * **Ubicación**: `backend/caissa.db`
 * **Gestor**: SQLite con soporte para *foreign keys* y transacciones seguras configurado en `infraestructura/base_de_datos/conexion.py`.
 * La ruta se resuelve dinámicamente relativa a la raíz de `backend/` o mediante la variable de entorno `CAISSA_DB_PATH`.
+
