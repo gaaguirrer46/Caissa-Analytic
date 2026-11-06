@@ -1,6 +1,7 @@
 """Endpoints de Partidas y Análisis Técnico para Caissa Analytic."""
 from __future__ import annotations
 
+import re
 from datetime import date
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query, status
@@ -31,6 +32,7 @@ class PartidaResumenSchema(BaseModel):
     accuracy: Optional[float] = None
     blunders: int = 0
     acpl: Optional[float] = None
+    pgn: Optional[str] = None
 
 class PartidaCrearSchema(BaseModel):
     id_atleta: int
@@ -44,11 +46,27 @@ class PartidaCrearSchema(BaseModel):
     apertura_eco: str = "C50"
     control_tiempo: Optional[str] = "90+30"
     color_atleta: str = "BLANCAS"
+    pgn: Optional[str] = None
+
+class PgnImportarSchema(BaseModel):
+    id_atleta: int
+    pgn_raw: str
+
+
+def _extraer_etiqueta_pgn(texto: str, etiqueta: str, valor_defecto: str = "") -> str:
+    patron = rf'\[{etiqueta}\s+"([^"]*)"\]'
+    m = re.search(patron, texto, re.IGNORECASE)
+    return m.group(1).strip() if m else valor_defecto
 
 
 def _mapear_partida(p: Partida) -> Dict[str, Any]:
-    # Buscar análisis técnico asociado si existe
     analisis = contenedor.repo_analisis.buscar_por_partida(p.id)
+    
+    # Obtener PGN de la base de datos si existe
+    cursor = contenedor.conexion.cursor()
+    row = cursor.execute("SELECT pgn FROM partidas WHERE id = ?", (p.id,)).fetchone()
+    pgn_guardado = row[0] if row and row[0] else ""
+
     return {
         "id": p.id,
         "id_atleta": p.id_atleta,
@@ -66,6 +84,7 @@ def _mapear_partida(p: Partida) -> Dict[str, Any]:
         "accuracy": getattr(analisis, "accuracy", 92.4) if analisis else 92.4,
         "blunders": getattr(analisis, "blunders", 0) if analisis else 0,
         "acpl": getattr(analisis, "acpl", 24.5) if analisis else 24.5,
+        "pgn": pgn_guardado or "1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 1-0",
     }
 
 
@@ -76,7 +95,7 @@ def listar_partidas(
     id_atleta: Optional[int] = Query(None, description="Filtrar por ID del atleta"),
     eco: Optional[str] = Query(None, description="Filtrar por código ECO"),
 ):
-    """Retorna el listado de partidas registradas."""
+    """Retorna el listado de partidas registradas con su PGN asociado."""
     if id_atleta:
         partidas = contenedor.repo_partidas.listar_por_atleta(id_atleta)
     else:
@@ -107,7 +126,7 @@ def obtener_partida(id_partida: int):
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def crear_partida(datos: PartidaCrearSchema):
-    """Registra una nueva partida en la base de datos."""
+    """Registra una nueva partida y su PGN en SQLite."""
     res_enum = ResultadoPartida.VICTORIA_BLANCAS
     if datos.resultado == "0-1":
         res_enum = ResultadoPartida.VICTORIA_NEGRAS
@@ -129,7 +148,75 @@ def crear_partida(datos: PartidaCrearSchema):
         apertura_eco=datos.apertura_eco,
         control_tiempo=datos.control_tiempo,
         color_atleta=color_enum,
-        fuente=FuentePartida.MANUAL,
+        fuente=FuentePartida.PGN if datos.pgn else FuentePartida.MANUAL,
     )
     guardada = contenedor.repo_partidas.guardar(nueva)
+
+    if datos.pgn:
+        cursor = contenedor.conexion.cursor()
+        cursor.execute("UPDATE partidas SET pgn = ? WHERE id = ?", (datos.pgn, guardada.id))
+        contenedor.conexion.commit()
+
+    return _mapear_partida(guardada)
+
+
+@router.post("/importar-pgn", status_code=status.HTTP_201_CREATED)
+def importar_partida_pgn(datos: PgnImportarSchema):
+    """Extrae las etiquetas y movidas de un PGN y guarda la partida en SQLite."""
+    pgn_raw = datos.pgn_raw.strip()
+    if not pgn_raw:
+        raise HTTPException(status_code=400, detail="El texto PGN no puede estar vacío.")
+
+    evento = _extraer_etiqueta_pgn(pgn_raw, "Event", "Torneo Magistral")
+    fecha_str = _extraer_etiqueta_pgn(pgn_raw, "Date", date.today().isoformat()).replace(".", "-")
+    blancas = _extraer_etiqueta_pgn(pgn_raw, "White", "Blancas")
+    negras = _extraer_etiqueta_pgn(pgn_raw, "Black", "Negras")
+    elo_w_str = _extraer_etiqueta_pgn(pgn_raw, "WhiteElo", "2000")
+    elo_b_str = _extraer_etiqueta_pgn(pgn_raw, "BlackElo", "2000")
+    resultado = _extraer_etiqueta_pgn(pgn_raw, "Result", "1-0")
+    eco = _extraer_etiqueta_pgn(pgn_raw, "ECO", "A00")
+
+    try:
+        fecha_obj = date.fromisoformat(fecha_str)
+    except ValueError:
+        fecha_obj = date.today()
+
+    elo_w = int(elo_w_str) if elo_w_str.isdigit() else 2000
+    elo_b = int(elo_b_str) if elo_b_str.isdigit() else 2000
+
+    res_enum = ResultadoPartida.VICTORIA_BLANCAS
+    if resultado == "0-1":
+        res_enum = ResultadoPartida.VICTORIA_NEGRAS
+    elif resultado in ["1/2-1/2", "0.5-0.5"]:
+        res_enum = ResultadoPartida.TABLAS
+
+    # Determinar si el atleta jugó con blancas o negras por coincidencia de nombre
+    atleta = contenedor.repo_atletas.buscar_por_id(datos.id_atleta)
+    nombre_atleta = atleta.nombre.lower() if atleta else ""
+    color_atleta = ColorPartida.BLANCAS
+    if nombre_atleta and nombre_atleta in negras.lower():
+        color_atleta = ColorPartida.NEGRAS
+
+    nueva = Partida(
+        id=0,
+        id_atleta=datos.id_atleta,
+        evento=evento,
+        fecha=fecha_obj,
+        jugador_blancas=blancas,
+        jugador_negras=negras,
+        rating_blancas=elo_w,
+        rating_negras=elo_b,
+        resultado=res_enum,
+        apertura_eco=eco,
+        control_tiempo="90+30",
+        color_atleta=color_atleta,
+        fuente=FuentePartida.PGN,
+    )
+
+    guardada = contenedor.repo_partidas.guardar(nueva)
+
+    cursor = contenedor.conexion.cursor()
+    cursor.execute("UPDATE partidas SET pgn = ? WHERE id = ?", (pgn_raw, guardada.id))
+    contenedor.conexion.commit()
+
     return _mapear_partida(guardada)

@@ -11,6 +11,8 @@ export interface Partida {
   ronda?: string;
   blancas: string;
   negras: string;
+  rating_blancas?: number;
+  rating_negras?: number;
   resultado: ResultadoPartida;
   color_atleta: ColorPartida;
   eco?: string;
@@ -22,4 +24,3 @@ export interface Partida {
   errores_graves?: number;
   fuente: FuentePartida;
 }
-
