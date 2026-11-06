@@ -7,7 +7,7 @@ import {
   Users,
   LayoutDashboard,
   Target,
-  Search,
+  BookOpen,
 } from "lucide-react";
 
 export function Navbar() {
@@ -17,6 +17,7 @@ export function Navbar() {
     { href: "/", label: "Command Center", icon: LayoutDashboard },
     { href: "/atletas", label: "Expediente Atletas", icon: Users },
     { href: "/partidas", label: "Suite de Análisis PGN", icon: Trophy },
+    { href: "/aperturas", label: "Repertorio de Aperturas", icon: BookOpen },
     { href: "/objetivos", label: "Objetivos SMART", icon: Target },
   ];
 
@@ -74,7 +75,7 @@ export function Navbar() {
         </Link>
 
         {/* Navigation tabs */}
-        <nav className="hidden md:flex items-center gap-1.5 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
+        <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive =
@@ -83,7 +84,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   isActive
                     ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/10"
                     : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
@@ -115,7 +116,7 @@ export function Navbar() {
       </div>
 
       {/* Mobile navigation bar */}
-      <div className="md:hidden flex items-center justify-around border-t border-slate-800/80 px-2 py-2 bg-[#06090f]">
+      <div className="md:hidden flex items-center justify-around border-t border-slate-800/80 px-2 py-2 bg-[#06090f] overflow-x-auto">
         {navLinks.map((link) => {
           const Icon = link.icon;
           const isActive =
@@ -124,7 +125,7 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex-shrink-0 ${
                 isActive
                   ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                   : "text-slate-400"
