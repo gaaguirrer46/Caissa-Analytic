@@ -6,11 +6,8 @@ import {
   Trophy,
   Users,
   LayoutDashboard,
-  BrainCircuit,
+  Target,
   Search,
-  Bell,
-  SlidersHorizontal,
-  ChevronDown,
 } from "lucide-react";
 
 export function Navbar() {
@@ -20,6 +17,7 @@ export function Navbar() {
     { href: "/", label: "Command Center", icon: LayoutDashboard },
     { href: "/atletas", label: "Expediente Atletas", icon: Users },
     { href: "/partidas", label: "Suite de Análisis PGN", icon: Trophy },
+    { href: "/objetivos", label: "Objetivos SMART", icon: Target },
   ];
 
   return (
@@ -35,7 +33,7 @@ export function Navbar() {
           <span className="text-slate-700 hidden sm:inline">|</span>
           <div className="hidden sm:flex items-center gap-1.5">
             <span className="text-slate-400">ELO PROMEDIO CLUB:</span>
-            <span className="text-white font-mono font-bold">2,085</span>
+            <span className="text-white font-mono font-bold">2,074</span>
             <span className="text-emerald-400 font-mono text-[10px]">(+42 pts)</span>
           </div>
           <span className="text-slate-700 hidden md:inline">|</span>
@@ -85,7 +83,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   isActive
                     ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/10"
                     : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
@@ -100,16 +98,6 @@ export function Navbar() {
 
         {/* Right tools / Profile */}
         <div className="flex items-center gap-3">
-          {/* Quick search shortcut trigger */}
-          <button className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 text-xs transition-colors">
-            <Search className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[11px]">Buscar partida, ECO o atleta...</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400 border border-slate-700">
-              ⌘K
-            </kbd>
-          </button>
-
-          {/* User profile capsule */}
           <div className="flex items-center gap-2.5 pl-2 border-l border-slate-800">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-600 flex items-center justify-center text-xs font-bold text-white shadow-inner">
               EA
