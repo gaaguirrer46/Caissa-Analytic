@@ -48,7 +48,7 @@ class PartidaCrearSchema(BaseModel):
 
 def _mapear_partida(p: Partida) -> Dict[str, Any]:
     # Buscar análisis técnico asociado si existe
-    analisis = contenedor.repo_analisis.buscar_por_id_partida(p.id)
+    analisis = contenedor.repo_analisis.buscar_por_partida(p.id)
     return {
         "id": p.id,
         "id_atleta": p.id_atleta,
