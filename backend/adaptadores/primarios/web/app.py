@@ -12,7 +12,7 @@ if str(RAIZ_BACKEND) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from adaptadores.primarios.web.routers import atletas, partidas, objetivos, indicadores, aperturas
+from adaptadores.primarios.web.routers import atletas, partidas, objetivos, indicadores, aperturas, entrenamientos
 
 app = FastAPI(
     title="Caissa Analytic API",
@@ -42,6 +42,7 @@ app.include_router(partidas.router)
 app.include_router(objetivos.router)
 app.include_router(indicadores.router)
 app.include_router(aperturas.router)
+app.include_router(entrenamientos.router)
 
 
 @app.get("/", tags=["Estado"])

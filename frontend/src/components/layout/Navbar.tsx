@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Target,
   BookOpen,
+  CalendarCheck,
 } from "lucide-react";
 
 export function Navbar() {
@@ -18,6 +19,7 @@ export function Navbar() {
     { href: "/atletas", label: "Expediente Atletas", icon: Users },
     { href: "/partidas", label: "Suite de Análisis PGN", icon: Trophy },
     { href: "/aperturas", label: "Repertorio de Aperturas", icon: BookOpen },
+    { href: "/entrenamientos", label: "Planes & Entrenamiento", icon: CalendarCheck },
     { href: "/objetivos", label: "Objetivos SMART", icon: Target },
   ];
 
@@ -75,7 +77,7 @@ export function Navbar() {
         </Link>
 
         {/* Navigation tabs */}
-        <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
+        <nav className="hidden xl:flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive =
@@ -116,7 +118,7 @@ export function Navbar() {
       </div>
 
       {/* Mobile navigation bar */}
-      <div className="md:hidden flex items-center justify-around border-t border-slate-800/80 px-2 py-2 bg-[#06090f] overflow-x-auto">
+      <div className="xl:hidden flex items-center justify-around border-t border-slate-800/80 px-2 py-2 bg-[#06090f] overflow-x-auto">
         {navLinks.map((link) => {
           const Icon = link.icon;
           const isActive =
