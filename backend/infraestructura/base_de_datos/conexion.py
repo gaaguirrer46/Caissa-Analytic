@@ -20,7 +20,7 @@ def obtener_conexion(
     else:
         destino = str(ruta_bd or os.environ.get("CAISSA_DB_PATH", str(RUTA_BD_DEFECTO)))
 
-    conexion = sqlite3.connect(destino, timeout=15.0)
+    conexion = sqlite3.connect(destino, timeout=15.0, check_same_thread=False)
     conexion.row_factory = sqlite3.Row
 
     conexion.execute("PRAGMA foreign_keys = ON;")
