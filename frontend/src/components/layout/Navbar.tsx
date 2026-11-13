@@ -9,6 +9,7 @@ import {
   Target,
   BookOpen,
   CalendarCheck,
+  Award,
 } from "lucide-react";
 
 export function Navbar() {
@@ -20,6 +21,7 @@ export function Navbar() {
     { href: "/partidas", label: "Suite de Análisis PGN", icon: Trophy },
     { href: "/aperturas", label: "Repertorio de Aperturas", icon: BookOpen },
     { href: "/entrenamientos", label: "Planes & Entrenamiento", icon: CalendarCheck },
+    { href: "/evaluaciones", label: "Evaluaciones DT", icon: Award },
     { href: "/objetivos", label: "Objetivos SMART", icon: Target },
   ];
 
