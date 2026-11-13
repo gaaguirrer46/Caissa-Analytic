@@ -11,6 +11,7 @@ import {
   CalendarCheck,
   Award,
   ShieldCheck,
+  Settings,
 } from "lucide-react";
 
 export function Navbar() {
@@ -25,6 +26,7 @@ export function Navbar() {
     { href: "/evaluaciones", label: "Evaluaciones DT", icon: Award },
     { href: "/objetivos", label: "Objetivos SMART", icon: Target },
     { href: "/auditoria", label: "Auditoría & Logs", icon: ShieldCheck },
+    { href: "/configuracion", label: "Ajustes", icon: Settings },
   ];
 
   return (
@@ -105,7 +107,11 @@ export function Navbar() {
 
         {/* Right tools / Profile */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5 pl-2 border-l border-slate-800">
+          <Link
+            href="/configuracion"
+            className="flex items-center gap-2.5 pl-2 border-l border-slate-800 hover:opacity-80 transition-opacity"
+            title="Ir a Configuración del Sistema"
+          >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-600 flex items-center justify-center text-xs font-bold text-white shadow-inner">
               EA
             </div>
@@ -117,7 +123,7 @@ export function Navbar() {
                 Rol: DT / Club Master
               </span>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
 
