@@ -10,6 +10,7 @@ import {
   BookOpen,
   CalendarCheck,
   Award,
+  ShieldCheck,
 } from "lucide-react";
 
 export function Navbar() {
@@ -23,6 +24,7 @@ export function Navbar() {
     { href: "/entrenamientos", label: "Planes & Entrenamiento", icon: CalendarCheck },
     { href: "/evaluaciones", label: "Evaluaciones DT", icon: Award },
     { href: "/objetivos", label: "Objetivos SMART", icon: Target },
+    { href: "/auditoria", label: "Auditoría & Logs", icon: ShieldCheck },
   ];
 
   return (
